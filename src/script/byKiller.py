@@ -24,14 +24,28 @@ cookies = {
     'xq_r_token.sig': 'h9qWLLwRXV-QxfHHukEC2U76ZDA'
 }
 
+def loadJsonFile(filePath):
+    with open(filePath) as json_file:
+        data = json.load(json_file)
+        return data
+
+blackListSet = set(loadJsonFile('../assets/blackList.json'))
+
 @itchat.msg_register([itchat.content.TEXT])
 def text_reply(msg):
-    if msg['ToUserName'] == FILE_HELPER:
-        result = calculateBiKiller('SZ000007', 420)
-        pushMessage(result['brief'])
+    content = msg['Content']
+    toUserName = msg['ToUserName']
+    if toUserName == FILE_HELPER:
+        if content == '导出':
+            pushMessage('正在导出中')
+            synchronizeStockData(True)
+        else:
+            result = calculateBiKiller('SZ000007', 420)
+            pushMessage(result['brief'])
 
 def numberFormat(num):
     return '%.2f' % num
+
 
 
 def wechatMsgResponse(msg):
@@ -65,6 +79,8 @@ def getHistoryData(code, days):
     return session.get(url, params=params, headers=headers, cookies=cookies)
 
 def calculateBiKiller(code, count):
+    if code in blackListSet:
+        raise Exception('代码在黑名单中')
     result = getHistoryData(code, count)
     stringResponse = result.content.decode()
     return resolveData(json.loads(stringResponse))
@@ -160,11 +176,6 @@ def resolveData(raw):
         "brief": brief
     }
 
-def loadJsonFile(filePath):
-    with open(filePath) as json_file:
-        data = json.load(json_file)
-        return data
-
 def loadShanghaiStock():
     return loadJsonFile('../assets/shanghai.json')
 
@@ -205,23 +216,27 @@ def getModel(keyList, valueList):
         model[key] = valueList[keyIndex]
     return model
 
-def synchronizeStockData():
+def synchronizeStockData(asFile = False):
     stockList = getTotalStockList()
     totalLength = len(stockList)
     current = 0
+    resultList = []
     for stock in list(stockList):
         # result = calculateBiKiller(stock.get('code'), 420)
         try:
             result = calculateBiKiller(stock.get('code'), 420)
-            historyDocument.insert_one(result)
+            resultList.append(result)
+
         except:
             pass
         finally:
             current += 1
             print('{current}/{total}'.format(current=current, total=totalLength))
-
+    if asFile:
+        exportExcel(resultList, ["code", "last", "maxAverage", "minAverage", "diffPercent", "avg", "count"])
+    else:
+        for item in list(resultList):
+            historyDocument.insert_one(item)
 
 itchat.auto_login(hotReload=True)
 itchat.run(True)
-
-
