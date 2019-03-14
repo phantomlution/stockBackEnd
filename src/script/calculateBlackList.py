@@ -1,5 +1,6 @@
-from pymongo import MongoClient
-client = MongoClient('mongodb://localhost:27017')
+from src.service.stockService import StockService
+
+client = StockService.getMongoInstance()
 database = client.stock
 historyDocument = database.history
 

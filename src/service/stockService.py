@@ -1,10 +1,8 @@
-from src.utils.db import MySQL
+from pymongo import MongoClient
+
 
 class StockService(object):
 
     @staticmethod
-    def get_stock_list():
-        mysql = MySQL()
-        result = mysql.findAll('select * from stock where skip=0 and black_list = 0', ())
-        mysql.close()
-        return result
+    def getMongoInstance():
+        return MongoClient('mongodb://localhost:27017')

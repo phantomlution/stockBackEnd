@@ -3,8 +3,8 @@ import numpy as np
 import json
 from requests import Session
 import xlwt
-from pymongo import MongoClient
 import itchat
+from src.service.stockService import StockService
 
 FILE_HELPER = 'filehelper'
 
@@ -13,7 +13,7 @@ timeformat = '%Y-%m-%d'
 
 SHOW_DETAIL = False
 
-client = MongoClient('mongodb://localhost:27017')
+client = StockService.getMongoInstance()
 database = client.stock
 historyDocument = database.history
 
