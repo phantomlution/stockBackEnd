@@ -5,6 +5,7 @@ from requests import Session
 import xlwt
 import itchat
 from src.service.stockService import StockService
+from src.utils.sessions import FuturesSession
 
 FILE_HELPER = 'filehelper'
 
@@ -16,6 +17,8 @@ SHOW_DETAIL = False
 client = StockService.getMongoInstance()
 database = client.stock
 historyDocument = database.history
+
+session = FuturesSession()
 
 cookies = {
     'xq_a_token': '8309c28a83ae5d20f26b7fcc22debbcd459794bd',
@@ -55,7 +58,6 @@ def pushMessage(msg):
     itchat.send(msg, toUserName=FILE_HELPER)
 
 def getHistoryData(code, days):
-    session = Session()
     session.head('https://xueqiu.com/S/' + code)
 
     headers = {
@@ -81,7 +83,7 @@ def getHistoryData(code, days):
 def calculateBiKiller(code, count):
     if code in blackListSet:
         raise Exception('代码在黑名单中')
-    result = getHistoryData(code, count)
+    result = getHistoryData(code, count).result()
     stringResponse = result.content.decode()
     return resolveData(json.loads(stringResponse))
 
@@ -172,7 +174,7 @@ def resolveData(raw):
         "count": totalLength,
         "column": column,
         "data": modelList,
-        "updateDate": datetime.datetime.now(),
+        "updateDate": int(datetime.datetime.now().timestamp() * 1000 // 1),
         "brief": brief
     }
 
@@ -220,6 +222,7 @@ def synchronizeStockData(asFile = False):
     stockList = getTotalStockList()
     totalLength = len(stockList)
     current = 0
+    # stockList = [stockList[0]]
     resultList = []
     for stock in list(stockList):
         # result = calculateBiKiller(stock.get('code'), 420)
@@ -236,7 +239,8 @@ def synchronizeStockData(asFile = False):
         exportExcel(resultList, ["code", "last", "maxAverage", "minAverage", "diffPercent", "avg", "count"])
     else:
         for item in list(resultList):
-            historyDocument.insert_one(item)
+            historyDocument.update({ "code": item.get("code") }, item, True)
 
-itchat.auto_login(hotReload=True)
-itchat.run(True)
+synchronizeStockData(asFile=False)
+#itchat.auto_login(hotReload=True)
+#itchat.run(True)
