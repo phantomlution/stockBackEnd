@@ -18,13 +18,19 @@ client = StockService.getMongoInstance()
 database = client.stock
 historyDocument = database.history
 
-session = FuturesSession()
+session = FuturesSession(max_workers=20)
 
 cookies = {
     'xq_a_token': '8309c28a83ae5d20f26b7fcc22debbcd459794bd',
     'xq_a_token.sig': 'ekfY9a_we8nNlhOpvhWeZz85MrU',
     'xq_r_token': 'd55d09822791a788916028e59055668bed1b7018',
     'xq_r_token.sig': 'h9qWLLwRXV-QxfHHukEC2U76ZDA'
+}
+
+headers = {
+    'Accept': 'application/json, text/plain, */*',
+    'Origin': 'https://xueqiu.com',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
 }
 
 def loadJsonFile(filePath):
@@ -57,15 +63,13 @@ def wechatMsgResponse(msg):
 def pushMessage(msg):
     itchat.send(msg, toUserName=FILE_HELPER)
 
+def getStockBase(code):
+    url = 'https://stock.xueqiu.com/v5/stock/quote.json?symbol=' + str(code)
+
+    return json.loads(session.get(url, headers=headers, cookies=cookies).result().content.decode())
+
 def getHistoryData(code, days):
     session.head('https://xueqiu.com/S/' + code)
-
-    headers = {
-        'Accept': 'application/json, text/plain, */*',
-        'Origin': 'https://xueqiu.com',
-        'Referer': 'https://xueqiu.com/S/' + code,
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
-    }
 
     url = 'https://stock.xueqiu.com/v5/stock/chart/kline.json'
     timestamp = str(int(datetime.datetime.now().timestamp() * 1000 // 1))
@@ -241,6 +245,29 @@ def synchronizeStockData(asFile = False):
         for item in list(resultList):
             historyDocument.update({ "code": item.get("code") }, item, True)
 
-synchronizeStockData(asFile=False)
-#itchat.auto_login(hotReload=True)
-#itchat.run(True)
+
+def synchronizeStockBase():
+    stockList = getTotalStockList()
+    totalLength = len(stockList)
+    current = 0
+    resultList = []
+    for stock in list(stockList):
+        try:
+            result = getStockBase(stock.get('code')).get('data').get('quote')
+            resultList.append(result)
+        except:
+            pass
+        finally:
+            current += 1
+            print('{current}/{total}'.format(current=current, total=totalLength))
+    for item in list(resultList):
+        if item is not None:
+            database.base.update({ "code": item.get('symbol')}, item, True)
+
+if __name__ == '__main__':
+    synchronizeStockBase()
+    #result = getStockBase("SZ000007")
+    # print(result)
+    # synchronizeStockData(asFile=False)
+    # itchat.auto_login(hotReload=True)
+    # itchat.run(True)
