@@ -14,6 +14,19 @@ timeformat = '%Y-%m-%d'
 
 SHOW_DETAIL = False
 
+model_field_set = set([
+    'amount',
+    'chg',
+    'close',
+    'high',
+    'low',
+    'market_capital',
+    'open',
+    'percent',
+    'timestamp',
+    'volume'
+])
+
 client = StockService.getMongoInstance()
 database = client.stock
 historyDocument = database.history
@@ -21,10 +34,10 @@ historyDocument = database.history
 session = FuturesSession(max_workers=20)
 
 cookies = {
-    'xq_a_token': '8309c28a83ae5d20f26b7fcc22debbcd459794bd',
-    'xq_a_token.sig': 'ekfY9a_we8nNlhOpvhWeZz85MrU',
-    'xq_r_token': 'd55d09822791a788916028e59055668bed1b7018',
-    'xq_r_token.sig': 'h9qWLLwRXV-QxfHHukEC2U76ZDA'
+    'xq_a_token': '363aa481eb7c8b5ec33a22dad82f9b50a811a76d',
+    'xq_a_token.sig': '-IsDKkHnatxXFjssWaGxDZ4FLsg',
+    'xq_r_token': '6982254134692e2b8e4ecda2e571b3a01d723e5f',
+    'xq_r_token.sig': 'yITO4PkYzpoSN9Y9BtE1h19RPDo'
 }
 
 headers = {
@@ -89,6 +102,7 @@ def calculateBiKiller(code, count):
         raise Exception('代码在黑名单中')
     result = getHistoryData(code, count).result()
     stringResponse = result.content.decode()
+    print(stringResponse)
     return resolveData(json.loads(stringResponse))
 
 # 校验返回数据的时间序列是否正确
@@ -219,7 +233,8 @@ def exportExcel(dataList, fieldList):
 def getModel(keyList, valueList):
     model = {}
     for keyIndex, key in enumerate(keyList):
-        model[key] = valueList[keyIndex]
+        if key in model_field_set:
+            model[key] = valueList[keyIndex]
     return model
 
 def synchronizeStockData(asFile = False):

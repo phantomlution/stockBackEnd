@@ -24,7 +24,7 @@ def detail():
     print(params)
     # 最后一天的数据不准确
     #return success(mongo.stock.history_2019_03_12.find_one(params, { "_id": 0 }))
-    return success(calculateBiKiller(params.get('code'), 420))
+    return success(calculateBiKiller(params.get('code'), 600))
 
 @app.route('/stock/base', methods=['POST'])
 def base():
@@ -34,7 +34,7 @@ def base():
 @app.route('/stock/list')
 def stockList():
     return success({
-        "idList": list(mongo.stock.base.find({ "type": 11 }, { "symbol": 1, "_id": 0 })),
+        "idList": list(mongo.stock.base.find({ "type": 11 }, { "_id": 0 })),
         "nameList": getTotalStockList()
     })
 
