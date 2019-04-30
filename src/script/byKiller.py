@@ -102,7 +102,7 @@ def calculateBiKiller(code, count):
         raise Exception('代码在黑名单中')
     result = getHistoryData(code, count).result()
     stringResponse = result.content.decode()
-    print(stringResponse)
+
     return resolveData(json.loads(stringResponse))
 
 # 校验返回数据的时间序列是否正确
