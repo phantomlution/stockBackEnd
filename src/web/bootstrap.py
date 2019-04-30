@@ -21,7 +21,7 @@ def hello():
 @app.route('/stock/detail', methods=['POST'])
 def detail():
     params = request.get_json()
-    print(params)
+
     # 最后一天的数据不准确
     #return success(mongo.stock.history_2019_03_12.find_one(params, { "_id": 0 }))
     return success(calculateBiKiller(params.get('code'), 600))
