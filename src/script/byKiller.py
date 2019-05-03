@@ -14,30 +14,17 @@ timeformat = '%Y-%m-%d'
 
 SHOW_DETAIL = False
 
-model_field_set = set([
-    'amount',
-    'chg',
-    'close',
-    'high',
-    'low',
-    'market_capital',
-    'open',
-    'percent',
-    'timestamp',
-    'volume'
-])
-
 client = StockService.getMongoInstance()
 database = client.stock
 historyDocument = database.history
 
-session = FuturesSession(max_workers=20)
+session = FuturesSession(max_workers=50)
 
 cookies = {
-    'xq_a_token': '363aa481eb7c8b5ec33a22dad82f9b50a811a76d',
-    'xq_a_token.sig': '-IsDKkHnatxXFjssWaGxDZ4FLsg',
-    'xq_r_token': '6982254134692e2b8e4ecda2e571b3a01d723e5f',
-    'xq_r_token.sig': 'yITO4PkYzpoSN9Y9BtE1h19RPDo'
+    'xq_a_token': 'e4825b3d30583c1ee9dd6a030e01f888f4742ceb',
+    'xq_a_token.sig': 'xbDd2FH09OHm1CM0icsPi_wZGqk',
+    'xq_r_token': 'ac687cdb4b59093a43845a952a7728af7ed42176',
+    'xq_r_token.sig': 'TLDfn7bgRrm_PLi6OaO2aqQmWW0'
 }
 
 headers = {
@@ -177,11 +164,6 @@ def resolveData(raw):
     brief += '\n\n极大值个数：{count}，极大均值：{avg}，最大值：{max}'.format(count=len(jidazhi), avg=numberFormat(maxAverage), max=numberFormat(np.max(jidazhi)))
     brief += '\n\n极小值个数：{count}，极小均值：{avg}，最小值：{min}'.format(count=len(jixiaozhi), avg=numberFormat(minAverage), min=numberFormat(np.min(jixiaozhi)))
 
-    modelList = []
-    for item in list(itemList):
-        model = getModel(column, item)
-        modelList.append(model)
-
     return {
         "code": code,
         "last": lastEndPrice,
@@ -191,7 +173,7 @@ def resolveData(raw):
         "avg": totalAverage,
         "count": totalLength,
         "column": column,
-        "data": modelList,
+        "data": itemList,
         "updateDate": int(datetime.datetime.now().timestamp() * 1000 // 1),
         "brief": brief
     }
@@ -217,27 +199,7 @@ def getTotalStockList():
         })
     return result
 
-def exportExcel(dataList, fieldList):
-    workbook = xlwt.Workbook(encoding='utf-8')
-
-    worksheet = workbook.add_sheet('My Worksheet')
-    for fieldIndex, field in enumerate(fieldList):
-        worksheet.write(0, fieldIndex, label=field)
-
-    for index, data in enumerate(dataList):
-        for fieldIndex, field in enumerate(fieldList):
-            worksheet.write(index + 1, fieldIndex, label=data.get(field))
-
-    workbook.save('Excel_Workbook.xls')
-
-def getModel(keyList, valueList):
-    model = {}
-    for keyIndex, key in enumerate(keyList):
-        if key in model_field_set:
-            model[key] = valueList[keyIndex]
-    return model
-
-def synchronizeStockData(asFile = False):
+def synchronizeStockData():
     stockList = getTotalStockList()
     totalLength = len(stockList)
     current = 0
@@ -246,20 +208,15 @@ def synchronizeStockData(asFile = False):
     for stock in list(stockList):
         # result = calculateBiKiller(stock.get('code'), 420)
         try:
-            result = calculateBiKiller(stock.get('code'), 420)
-            resultList.append(result)
-
+            item = calculateBiKiller(stock.get('code'), 420)
+            print(item)
+            historyDocument.update({ "code": item.get("code") }, item, True)
         except:
+            print('err')
             pass
         finally:
             current += 1
             print('{current}/{total}'.format(current=current, total=totalLength))
-    if asFile:
-        exportExcel(resultList, ["code", "last", "maxAverage", "minAverage", "diffPercent", "avg", "count"])
-    else:
-        for item in list(resultList):
-            historyDocument.update({ "code": item.get("code") }, item, True)
-
 
 def synchronizeStockBase():
     stockList = getTotalStockList()
@@ -280,9 +237,9 @@ def synchronizeStockBase():
             database.base.update({ "code": item.get('symbol')}, item, True)
 
 if __name__ == '__main__':
-    synchronizeStockBase()
+    # synchronizeStockBase()
     #result = getStockBase("SZ000007")
     # print(result)
-    # synchronizeStockData(asFile=False)
+    synchronizeStockData()
     # itchat.auto_login(hotReload=True)
     # itchat.run(True)
