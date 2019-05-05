@@ -144,8 +144,7 @@ def resolveData(raw):
     totalLength = len(itemList)
     if totalLength == 0:
         raise Exception('无数据')
-    #if len(itemList) < MIN_COUNT:
-    #    raise Exception('数据不足' + str(MIN_COUNT))
+
     if checkTimeSequence(itemList, column.index('timestamp')) is not True:
         raise Exception('序列错误')
 
@@ -168,23 +167,12 @@ def resolveData(raw):
             if current <= former and current <= later:
                 jixiaozhi.append(current)
 
-    dateList = getCollection(itemList, column.index('timestamp'))
-
     lastItem = itemList[-1]
     lastEndPrice = lastItem[column.index('close')]
     maxAverage = np.mean(jidazhi)
     minAverage = np.mean(jixiaozhi)
     totalAverage = np.mean([maxAverage, minAverage])
     diffPercent = (lastEndPrice - totalAverage) / totalAverage * 100
-
-    brief = ''
-    brief += '{start} 至 {end}\n({count}个数据)'.format(count=totalLength, start=formatDate(dateList[0]), end=formatDate(dateList[-1]))
-    brief += '\n\n代码：{code}'.format(code=code)
-    brief += '\n\n{date}\n收盘：{price}'.format(date=formatDate(lastItem[column.index('timestamp')]), price=numberFormat(lastEndPrice))
-    brief += '\n偏移量' + ('+' if diffPercent > 0 else '') + numberFormat(diffPercent) + '%'
-    brief += '\n估：' + numberFormat(minAverage * 0.8)
-    brief += '\n\n极大值个数：{count}，极大均值：{avg}，最大值：{max}'.format(count=len(jidazhi), avg=numberFormat(maxAverage), max=numberFormat(np.max(jidazhi)))
-    brief += '\n\n极小值个数：{count}，极小均值：{avg}，最小值：{min}'.format(count=len(jixiaozhi), avg=numberFormat(minAverage), min=numberFormat(np.min(jixiaozhi)))
 
     return {
         "code": code,
@@ -196,8 +184,7 @@ def resolveData(raw):
         "count": totalLength,
         "column": column,
         "data": itemList,
-        "updateDate": int(datetime.datetime.now().timestamp() * 1000 // 1),
-        "brief": brief
+        "updateDate": int(datetime.datetime.now().timestamp() * 1000 // 1)
     }
 
 def loadShanghaiStock():
