@@ -22,32 +22,36 @@ session = FuturesSession(max_workers=50)
 
 fetch_cookie_url = 'https://xueqiu.com/S/SZ000007'
 
+cookies = {}
+
 def loadToken():
     options = Options()
     options.headless = True
     driver = webdriver.Chrome(chrome_options=options)
     driver.get(fetch_cookie_url)
-    cookies = driver.get_cookies()
+    local_cookies = driver.get_cookies()
     cookie_fields_set = set([
         'xq_a_token',
         'xq_a_token.sig',
         'xq_r_token',
         'xq_r_token.sig'
     ])
-    result = {}
-    for cookie in cookies:
+    for cookie in local_cookies:
         cookie_name = cookie['name']
         cookie_value = cookie['value']
         if cookie_name in cookie_fields_set:
-            result[cookie_name] = cookie_value
+            cookies[cookie_name] = cookie_value
     driver.quit()
-    return result
 
-cookies = {}
 
 # make sure your token is valid
 def refreshToken():
-    cookies = loadToken()
+    loadToken()
+
+refreshToken()
+
+print('123')
+print(cookies)
 
 headers = {
     'Accept': 'application/json, text/plain, */*',
@@ -137,6 +141,7 @@ def trim(string):
     return str.strip(string)
 
 def resolveData(raw):
+    print(raw)
     data = raw['data']
     code = data['symbol']
     column = data['column']
