@@ -248,8 +248,5 @@ def synchronizeStockBase():
 
 if __name__ == '__main__':
     synchronizeStockBase()
-    #result = getStockBase("SZ000007")
-    # print(result)
-    #synchronizeStockData()
     # itchat.auto_login(hotReload=True)
     # itchat.run(True)
