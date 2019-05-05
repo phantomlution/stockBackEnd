@@ -1,8 +1,8 @@
 import datetime
 import numpy as np
 import json
-from requests import Session
-import xlwt
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 import itchat
 from src.service.stockService import StockService
 from src.utils.sessions import FuturesSession
@@ -20,12 +20,34 @@ historyDocument = database.history
 
 session = FuturesSession(max_workers=50)
 
-cookies = {
-    'xq_a_token': 'e4825b3d30583c1ee9dd6a030e01f888f4742ceb',
-    'xq_a_token.sig': 'xbDd2FH09OHm1CM0icsPi_wZGqk',
-    'xq_r_token': 'ac687cdb4b59093a43845a952a7728af7ed42176',
-    'xq_r_token.sig': 'TLDfn7bgRrm_PLi6OaO2aqQmWW0'
-}
+fetch_cookie_url = 'https://xueqiu.com/S/SZ000007'
+
+def loadToken():
+    options = Options()
+    options.headless = True
+    driver = webdriver.Chrome(chrome_options=options)
+    driver.get(fetch_cookie_url)
+    cookies = driver.get_cookies()
+    cookie_fields_set = set([
+        'xq_a_token',
+        'xq_a_token.sig',
+        'xq_r_token',
+        'xq_r_token.sig'
+    ])
+    result = {}
+    for cookie in cookies:
+        cookie_name = cookie['name']
+        cookie_value = cookie['value']
+        if cookie_name in cookie_fields_set:
+            result[cookie_name] = cookie_value
+    driver.quit()
+    return result
+
+cookies = {}
+
+# make sure your token is valid
+def refreshToken():
+    cookies = loadToken()
 
 headers = {
     'Accept': 'application/json, text/plain, */*',
@@ -219,6 +241,7 @@ def synchronizeStockData():
             print('{current}/{total}'.format(current=current, total=totalLength))
 
 def synchronizeStockBase():
+    refreshToken()
     stockList = getTotalStockList()
     totalLength = len(stockList)
     current = 0
@@ -237,9 +260,9 @@ def synchronizeStockBase():
             database.base.update({ "code": item.get('symbol')}, item, True)
 
 if __name__ == '__main__':
-    # synchronizeStockBase()
+    synchronizeStockBase()
     #result = getStockBase("SZ000007")
     # print(result)
-    synchronizeStockData()
+    #synchronizeStockData()
     # itchat.auto_login(hotReload=True)
     # itchat.run(True)
