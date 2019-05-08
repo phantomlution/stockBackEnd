@@ -6,6 +6,7 @@ from selenium.webdriver.chrome.options import Options
 import itchat
 from src.service.stockService import StockService
 from src.utils.sessions import FuturesSession
+import asyncio
 
 FILE_HELPER = 'filehelper'
 
@@ -213,24 +214,25 @@ def getTotalStockList():
         })
     return result
 
+async def updateStockDocument(stock):
+    try:
+        item = calculateBiKiller(stock.get('code'), 420)
+        historyDocument.update({"code": item.get("code")}, item, True)
+    except:
+        print('err')
+        pass
+    finally:
+        print('done')
+        pass
+
+
+loop = asyncio.get_event_loop()
+
 def synchronizeStockData():
     stockList = getTotalStockList()
-    totalLength = len(stockList)
-    current = 0
-    # stockList = [stockList[0]]
-    resultList = []
     for stock in list(stockList):
-        # result = calculateBiKiller(stock.get('code'), 420)
-        try:
-            item = calculateBiKiller(stock.get('code'), 420)
-            print(item)
-            historyDocument.update({ "code": item.get("code") }, item, True)
-        except:
-            print('err')
-            pass
-        finally:
-            current += 1
-            print('{current}/{total}'.format(current=current, total=totalLength))
+        loop.run_until_complete(updateStockDocument(stock))
+
 
 def synchronizeStockBase():
     refreshToken()
@@ -252,6 +254,6 @@ def synchronizeStockBase():
             database.base.update({ "code": item.get('symbol')}, item, True)
 
 if __name__ == '__main__':
-    synchronizeStockBase()
+    synchronizeStockData()
     # itchat.auto_login(hotReload=True)
     # itchat.run(True)
