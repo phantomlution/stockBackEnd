@@ -51,9 +51,6 @@ def refreshToken():
 
 refreshToken()
 
-print('123')
-print(cookies)
-
 headers = {
     'Accept': 'application/json, text/plain, */*',
     'Origin': 'https://xueqiu.com',
