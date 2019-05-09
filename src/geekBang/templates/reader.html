@@ -3,19 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+		<style>
+			body, button, input, select, textarea {
+				font: 300 1em/1.8 PingFang SC,Lantinghei SC,Microsoft Yahei,Hiragino Sans GB,Microsoft Sans Serif,WenQuanYi Micro Hei,Helvetica,sans-serif;
+			}
+
+			img{
+				max-width: 100%;
+			}
+
+		</style>
+		<style>
+				.lr-reader{
+					padding: 8px 64px;
+				}
+				.lr-reader-title{
+
+				}
+
+				.lr-reader-content{
+					font-weight: 400;
+					color: #4c4c4c;
+					line-height: 1.76;
+					white-space: normal;
+					word-break: normal;
+					font-size: 16px;
+					-webkit-font-smoothing: antialiased;
+					-webkit-transition: background-color .3s ease;
+					transition: background-color .3s ease;
+				}
+				.lr-reader-content p{
+					font-weight: 400;
+					color: #4c4c4c;
+					margin-top: 0;
+					margin-bottom: 30px;
+					word-break: break-word;
+				}
+
+				.lr-reader-content p:last-child img{
+					display: none;
+				}
+
+				.lr-reader-bar__left{
+					position: fixed;
+					left: 10px;
+					top: 50%;
+				}
+
+				.lr-reader-bar__right{
+					position: fixed;
+					right: 10px;
+					top: 50%;
+				}
+
+				.lr-reader-bar__content{
+					height: 38px;
+					width: 38px;
+					font-size: 18px;
+					border-radius: 50%;
+					background: #f6f7f9;
+					line-height: 38px;
+					text-align: center;
+					color: #999;
+					cursor: pointer;
+					border: 1px solid #f6f7f9;
+				}
+
+				.lr-reader-bar__content:hover{
+					border: 1px solid #fa8919;
+					color: #fa8919;
+					background: #fff;
+				}
+		</style>
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
 </head>
 <body>
     <div id="app">
-        <div>
-			this is content
-		</div>
+			<div>
+				<el-select v-model="bookId" style="width: 100%">
+					<el-option :key="item.id" :label="item.label" :value="item.value" v-for="item in bookSelectList"></el-option>
+				</el-select>
+			</div>
+			<div class="lr-reader">
+				<div class="lr-reader-bar">
+					<div class="lr-reader-bar__left lr-reader-bar__content" v-show="showFormer" @click.stop="toNextPage(-1)"><</div>
+					<div class="lr-reader-bar__right lr-reader-bar__content" v-show="showLater" @click.stop="toNextPage(1)">></div>
+				</div>
+				<div class="lr-reader-title">
+					<h1 v-html="title"></h1>
+				</div>
+				<div class="lr-reader-content" v-html="content"></div>
+			</div>
+
     </div>
     <script src="https://libs.cdnjs.net/axios/0.19.0-beta.1/axios.min.js"></script>
     <script src="https://libs.cdnjs.net/vue/2.6.10/vue.min.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		<script>
+			const instance = axios.create({
+				baseURL: "http://localhost:9999",
+				timeout: 1000
+			})
+			Vue.prototype.$http = {
+				get(url, data) {
+					return new Promise((resolve, reject) => {
+						instance.get(url, { params: data }).then(response => {
+							resolve(response.data)
+						}).then(_ => {
+							reject(_)
+						})
+					})
+				}
+			}
+		</script>
+
     <script>
-//         new Vue({
-//             el: "#app",
-//         })
+        new Vue({
+            el: "#app",
+						data() {
+							const lastBookId = this.getLocal('lastBookId')
+							return {
+								bookId: lastBookId,
+								bookSelectList: [],
+								chapterIndex: '',
+								chapterList: [],
+								currentChapter: null,
+							}
+						},
+						computed: {
+							showFormer() {
+								return this.chapterIndex.length > 0 && Number(this.chapterIndex > 0)
+							},
+							showLater() {
+								if (this.chapterIndex.length > 0) {
+									return Number(this.chapterIndex) < this.chapterList.length - 1
+								}
+								return false
+							},
+							title() {
+								if (this.currentChapter) {
+									return this.currentChapter.article_title
+								}
+								return ''
+							},
+							content() {
+								if (this.currentChapter) {
+									return this.currentChapter.article_content
+								}
+								return ''
+							}
+						},
+						watch: {
+							bookId(val) {
+								if (val) {
+									this.getBookChapterList(val)
+								}
+								this.setLocal('lastBookId', val)
+								this.showLastBookChapter()
+							},
+							chapterIndex(val) {
+								this.setLocal(`book_${ this.bookId }`, val)
+								this.currentChapter = this.chapterList[Number(val)]
+							}
+						},
+						mounted() {
+							this.getBookList()
+							if (this.bookId) {
+								this.getBookChapterList(this.bookId)
+							}
+
+						},
+						methods: {
+							setLocal(key, value) {
+								localStorage.setItem(key, value)
+							},
+							getLocal(key, defaultValue = '') {
+								return localStorage.getItem(key) || defaultValue
+							},
+							getBookList() {
+								this.$http.get('/book/list').then(directoryList => {
+									this.bookSelectList = directoryList.map(item => {
+										return {
+											label: item.column_title,
+											value: item.id + ''
+										}
+									})
+								}).catch(_ => {
+									console.error(_)
+								})
+							},
+							getBookChapterList(bookId) {
+								this.$http.get('/book/chapter/list', {
+									id: bookId
+								}).then(chapterList => {
+									this.chapterList = chapterList
+									this.showLastBookChapter()
+								}).catch(err => {
+									console.error(err)
+								})
+							},
+							showLastBookChapter() {
+								this.chapterIndex = this.getLocal(`book_${ this.bookId }`, '0')
+								console.log(this.chapterIndex)
+							},
+							toNextPage(increment) {
+								this.chapterIndex = (Number(this.chapterIndex) + increment).toString()
+							}
+						}
+        })
     </script>
 </body>
 </html>

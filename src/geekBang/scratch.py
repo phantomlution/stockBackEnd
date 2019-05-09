@@ -22,14 +22,11 @@ headers = {
 }
 
 def getCategory(cid):
-    url = "https://time.geekbang.org/serv/v1/column/articles"
+    url = "https://time.geekbang.org/serv/v1/column/details"
 
     data = {
-        "cid": cid,
-        "order": 'earliest',
-        "prev": 0,
-        "sample": False,
-        "size": 100
+        "ids": [cid],
+        "is_article": 1
     }
     return session.post(url, data=json.dumps(data), headers=headers, cookies=cookies)
 
@@ -56,25 +53,23 @@ id_list = [
     126,116,115,113,112,111,110,108,105,104,
     103,100,98,97,87,85,84,82,81,80,
     79,77,76,75,74,73,66,63,62,61,
-    50,49,48,43,42
+    50, 49, 48, 43, 42
 ]
 
 def synchornizeColumn(directoryId):
     categoryResponse = resolveResult(getCategory(directoryId))
-    categoryList = categoryResponse["data"]["list"]
-    if len(categoryList) > 0:
-        database.directory.update({"id": directoryId}, {"id": directoryId, "list": categoryList}, True)
-        for category in categoryList:
-            time.sleep(1)
+    categoryResponse = categoryResponse["data"][0]
+    if categoryResponse is not None:
+        database.directory.update({"id": directoryId}, categoryResponse, True)
+        for category in categoryResponse["list"]:
             categoryId = category["id"]
             columnResponse = resolveResult(getColumn(categoryId))
             columnDetail = columnResponse["data"]
-            database.column.update({"cid": categoryId}, columnDetail, True)
+            database.column.update({"id": columnDetail["id"]}, columnDetail, True)
 
 if __name__ == '__main__':
     count = 0
     for directoryId in id_list:
-        count += 1
-        time.sleep(1)
-        print('current is' + str(count))
+        print('current is' + str(id_list[count]))
         synchornizeColumn(directoryId)
+        count += 1

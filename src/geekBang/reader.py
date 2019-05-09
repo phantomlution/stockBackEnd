@@ -12,15 +12,14 @@ CORS(app)
 def hello():
     return render_template('reader.html')
 
-@app.route('/column/list', methods=['POST'])
-def base():
-    params = request.get_json()
+@app.route('/book/list', methods=['GET'])
+def book_list():
+    return jsonify(list(mongo.geekbang.directory.find({}, { "_id": 0})))
 
-@app.route('/column/detail', methods=['GET'])
-def detail():
-    id = request.args.get('id')
-    cid = request.args.get('cid')
-    return jsonify(mongo.geekbang.column.find_one({ "cid": int(cid), "id": int(id) }, { "_id": 0 }))
+@app.route('/book/chapter/list', methods=['GET'])
+def base():
+    book_id = request.args.get('id')
+    return jsonify(list(mongo.geekbang.column.find({ "cid": int(book_id)}, { "_id": 0, })))
 
 if __name__ == '__main__':
     app.run(port=9999)
