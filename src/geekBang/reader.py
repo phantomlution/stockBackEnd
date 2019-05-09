@@ -18,10 +18,9 @@ def base():
 
 @app.route('/column/detail', methods=['GET'])
 def detail():
-    collection = request.args.get('collection')
-    columnId = request.args.get('columnId')
-
-    return jsonify(mongo.geekbang[collection].find({ "column_id": columnId }))
+    id = request.args.get('id')
+    cid = request.args.get('cid')
+    return jsonify(mongo.geekbang.column.find_one({ "cid": int(cid), "id": int(id) }, { "_id": 0 }))
 
 if __name__ == '__main__':
     app.run(port=9999)

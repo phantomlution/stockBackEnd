@@ -6,11 +6,11 @@ session = FuturesSession(max_workers=50)
 
 client = StockService.getMongoInstance()
 database = client.geekbang
-historyDocument = database.zuoertingfeng
+
 
 cookies = {
-    "GCESS": "BAsCBAAEBAAvDQAJAQEIAQMHBN899ZsKBAAAAAABBEYdEgACBBaY0lwMAQEGBHY8pzAFBAAAAAADBBaY0lw-",
-    "GCID": "f9d2cdd-72b2df1-0278824-3e979b7",
+    "GCESS": "BAYEO.LjoQoEAAAAAAcEP8.4rQUEAAAAAAMEBJfTXAQEAC8NAAIEBJfTXAgBAwsCBAABBEYdEgAMAQEJAQE-",
+    "GCID": "a865c14-aeb2edc-c6dab38-71a7d6e",
 }
 
 headers = {
@@ -49,12 +49,32 @@ def resolveResult(response):
 # 重学前端 154
 # 左耳 48
 
-if __name__ == '__main__':
-    categoryResponse = resolveResult(getCategory(48))
+id_list = [
+    176,175,170,169,167,166,165,164,163,161,
+    160,159,158,156,155,154,153,129,148,147,
+    145,143,142,140,139,138,133,132,130,127,
+    126,116,115,113,112,111,110,108,105,104,
+    103,100,98,97,87,85,84,82,81,80,
+    79,77,76,75,74,73,66,63,62,61,
+    50,49,48,43,42
+]
+
+def synchornizeColumn(directoryId):
+    categoryResponse = resolveResult(getCategory(directoryId))
     categoryList = categoryResponse["data"]["list"]
-    for category in categoryList:
+    if len(categoryList) > 0:
+        database.directory.update({"id": directoryId}, {"id": directoryId, "list": categoryList}, True)
+        for category in categoryList:
+            time.sleep(1)
+            categoryId = category["id"]
+            columnResponse = resolveResult(getColumn(categoryId))
+            columnDetail = columnResponse["data"]
+            database.column.update({"cid": categoryId}, columnDetail, True)
+
+if __name__ == '__main__':
+    count = 0
+    for directoryId in id_list:
+        count += 1
         time.sleep(1)
-        categoryId = category["id"]
-        columnResponse = resolveResult(getColumn(categoryId))
-        columnDetail = columnResponse["data"]
-        historyDocument.update({"cid": categoryId }, columnDetail, True)
+        print('current is' + str(count))
+        synchornizeColumn(directoryId)

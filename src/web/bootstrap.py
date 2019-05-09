@@ -64,4 +64,6 @@ def test_message(message):
 
 if __name__ == '__main__':
     # app.run(port=5001)
-    socketio.run(app, port=5001)
+    port = 5001
+    print('server run at:' + str(port))
+    socketio.run(app, port=port)
