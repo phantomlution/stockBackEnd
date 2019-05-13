@@ -28,11 +28,18 @@ def detail():
     params = request.get_json()
     return success(getStockDetail(params))
 
+history_cache = {}
 
 def getStockDetail(params):
     # 最后一天的数据不准确
     return mongo.stock.history.find_one(params, {"_id": 0})
-    #return calculateBiKiller(params.get('code'), params.get('count'))
+
+@app.route('/stock/index', methods=['GET'])
+def getMarketIndex():
+    # 获取开市时间列表
+    code = request.args.get('code')
+    count = request.args.get('count')
+    return success(calculateBiKiller(code, count))
 
 @app.route('/stock/base', methods=['POST'])
 def base():

@@ -139,7 +139,6 @@ def trim(string):
     return str.strip(string)
 
 def resolveData(raw):
-    print(raw)
     data = raw['data']
     code = data['symbol']
     column = data['column']
@@ -211,7 +210,12 @@ def getTotalStockList():
         })
     return result
 
+finish_count = 0
+totalStockLength = 0
+
 async def updateStockDocument(stock):
+    global finish_count
+    global totalStockLength
     try:
         item = calculateBiKiller(stock.get('code'), 420)
         historyDocument.update({"code": item.get("code")}, item, True)
@@ -219,14 +223,17 @@ async def updateStockDocument(stock):
         print('err')
         pass
     finally:
-        print('done')
+        finish_count += 1
+        print('done:' + str(finish_count) + '/' + str(totalStockLength))
         pass
 
 
 loop = asyncio.get_event_loop()
 
 def synchronizeStockData():
+    global totalStockLength
     stockList = getTotalStockList()
+    totalStockLength = len(stockList)
     for stock in list(stockList):
         loop.run_until_complete(updateStockDocument(stock))
 
@@ -250,7 +257,12 @@ def synchronizeStockBase():
         if item is not None:
             database.base.update({ "code": item.get('symbol')}, item, True)
 
+def removeOldDocuments():
+    database.history.drop()
+
+
 if __name__ == '__main__':
+    removeOldDocuments()
     synchronizeStockData()
     # itchat.auto_login(hotReload=True)
     # itchat.run(True)
