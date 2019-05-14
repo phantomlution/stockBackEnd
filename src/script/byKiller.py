@@ -224,7 +224,10 @@ async def updateStockDocument(stock):
         pass
     finally:
         finish_count += 1
-        print('done:' + str(finish_count) + '/' + str(totalStockLength))
+        print('done: {finish_count}/{totalStockLength},{progress}%'.format(finish_count=finish_count,
+                                                                           totalStockLength=totalStockLength,
+                                                                           progress=finish_count * 100 // totalStockLength))
+
         pass
 
 
@@ -266,3 +269,4 @@ if __name__ == '__main__':
     synchronizeStockData()
     # itchat.auto_login(hotReload=True)
     # itchat.run(True)
+
