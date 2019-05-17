@@ -5,7 +5,7 @@
     <title>Title</title>
 		<style>
 			body, button, input, select, textarea {
-				font: 300 1em/1.8 PingFang SC,Lantinghei SC,Microsoft Yahei,Hiragino Sans GB,Microsoft Sans Serif,WenQuanYi Micro Hei,Helvetica,sans-serif;
+				font: 300 1em PingFang SC,Lantinghei SC,Microsoft Yahei,Hiragino Sans GB,Microsoft Sans Serif,WenQuanYi Micro Hei,Helvetica,sans-serif;
 			}
 
 			img{
@@ -74,14 +74,43 @@
 					color: #fa8919;
 					background: #fff;
 				}
+
+				.lr-reader-intro{
+					display: flex;
+				}
+				.lr-reader-intro__cover{
+					height: 30px;
+				}
+				.lr-reader-intro__sub{
+					color: #8492a6;
+					font-size: 13px
+				}
+
+				.lr-reader__audio audio{
+					width: 100%;
+					margin-bottom: 8px;
+				}
+				.lr-reader__audio audio:active{
+					outline: none;
+				}
 		</style>
 		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
 </head>
 <body>
     <div id="app">
-			<div>
-				<el-select v-model="bookId" style="width: 100%">
-					<el-option :key="item.id" :label="item.label" :value="item.value" v-for="item in bookSelectList"></el-option>
+			<div style="padding: 24px 64px">
+				<el-select v-model="bookId" filterable style="width: 100%">
+					<el-option :key="item.id" :label="item.label" :value="item.value" v-for="item in bookSelectList">
+						<div class="lr-reader-intro">
+							<div class="lr-reader-intro__cover"><img :src="item.meta.column_cover" style="height: 100%;"/></div>
+							<div style="flex: 1;display: flex;">
+								<div style="flex: 1;justify-content: flex-start;padding-left: 8px;">
+									{{ item.label }}
+								</div>
+								<div class="lr-reader-intro__sub">{{ item.meta.update_frequency }}<span v-if="item.done">✅</span></div>
+							</div>
+						</div>
+					</el-option>
 				</el-select>
 			</div>
 			<div class="lr-reader">
@@ -91,6 +120,9 @@
 				</div>
 				<div class="lr-reader-title">
 					<h1 v-html="title"></h1>
+				</div>
+				<div v-if="audioUrl" class="lr-reader__audio">
+						<audio controls="" autoplay="false" name="media"><source :src="audioUrl" type="audio/mpeg"></audio>
 				</div>
 				<div class="lr-reader-content" v-html="content"></div>
 			</div>
@@ -109,7 +141,7 @@
 					return new Promise((resolve, reject) => {
 						instance.get(url, { params: data }).then(response => {
 							resolve(response.data)
-						}).then(_ => {
+						}).catch(_ => {
 							reject(_)
 						})
 					})
@@ -123,6 +155,7 @@
 						data() {
 							const lastBookId = this.getLocal('lastBookId')
 							return {
+								doneBookList: ['148'],
 								bookId: lastBookId,
 								bookSelectList: [],
 								chapterIndex: '',
@@ -150,6 +183,12 @@
 								if (this.currentChapter) {
 									return this.currentChapter.article_content
 								}
+								return ''
+							},
+							audioUrl() {
+// 								if (this.currentChapter) {
+// 									return this.currentChapter.audio_download_url
+// 								}
 								return ''
 							}
 						},
@@ -184,8 +223,10 @@
 								this.$http.get('/book/list').then(directoryList => {
 									this.bookSelectList = directoryList.map(item => {
 										return {
-											label: item.column_title,
-											value: item.id + ''
+											label: `${ item.column_title } | ${ item.column_subtitle }`,
+											value: item.id + '',
+											done: this.doneBookList.indexOf(item.id.toString()) !== -1,
+											meta: item
 										}
 									})
 								}).catch(_ => {
@@ -204,10 +245,11 @@
 							},
 							showLastBookChapter() {
 								this.chapterIndex = this.getLocal(`book_${ this.bookId }`, '0')
-								console.log(this.chapterIndex)
 							},
 							toNextPage(increment) {
 								this.chapterIndex = (Number(this.chapterIndex) + increment).toString()
+								const target= document.documentElement || document.body
+								target.scrollTop = 0
 							}
 						}
         })

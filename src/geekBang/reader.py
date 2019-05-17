@@ -10,7 +10,9 @@ CORS(app)
 
 @app.route('/')
 def hello():
-    return render_template('reader.html')
+    with open('./templates/reader.html', 'r') as file:
+        data = file.read()
+    return data
 
 @app.route('/book/list', methods=['GET'])
 def book_list():
