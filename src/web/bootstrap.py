@@ -4,7 +4,6 @@ from src.script.byKiller import calculateBiKiller, getTotalStockList
 from flask_socketio import SocketIO, emit
 from bson import json_util
 import json
-import zlib
 
 mongo = StockService.getMongoInstance()
 
@@ -73,4 +72,4 @@ if __name__ == '__main__':
     # app.run(port=5001)
     port = 5001
     print('server run at:' + str(port))
-    socketio.run(app, port=port)
+    socketio.run(app, port=port, threaded=True)
