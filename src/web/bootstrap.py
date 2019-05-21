@@ -9,7 +9,7 @@ mongo = StockService.getMongoInstance()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
+socketio = SocketIO(app, threaded=True)
 
 def success(data):
     return jsonify({
@@ -72,4 +72,4 @@ if __name__ == '__main__':
     # app.run(port=5001)
     port = 5001
     print('server run at:' + str(port))
-    socketio.run(app, port=port, threaded=True)
+    socketio.run(app, port=port)
