@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from src.service.stockService import StockService
 from flask_cors import CORS
-import json
 
 mongo = StockService.getMongoInstance()
 
@@ -24,4 +23,4 @@ def base():
     return jsonify(list(mongo.geekbang.column.find({ "cid": int(book_id)}, { "_id": 0, })))
 
 if __name__ == '__main__':
-    app.run(port=9999)
+    app.run(port=9999, threaded=True)
