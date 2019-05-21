@@ -133,7 +133,7 @@
 		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
 		<script>
 			const instance = axios.create({
-				baseURL: "http://localhost:9999"
+				baseURL: "http://" + window.location.host
 			})
 			Vue.prototype.$http = {
 				get(url, data) {

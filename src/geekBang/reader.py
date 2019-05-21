@@ -23,4 +23,4 @@ def base():
     return jsonify(list(mongo.geekbang.column.find({ "cid": int(book_id)}, { "_id": 0, })))
 
 if __name__ == '__main__':
-    app.run(port=9999, threaded=True)
+    app.run(host="0.0.0.0", port=9999, threaded=True)
