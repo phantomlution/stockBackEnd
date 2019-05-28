@@ -18,6 +18,7 @@ SHOW_DETAIL = False
 client = StockService.getMongoInstance()
 database = client.stock
 historyDocument = database.history
+baseDocument = database.base
 
 session = FuturesSession(max_workers=50)
 
@@ -230,6 +231,23 @@ async def updateStockDocument(stock):
 
         pass
 
+async def updateDocumentCompanyIntrodution(code):
+    global finish_count
+    global totalStockLength
+    try:
+        result = loadStockIntroduction(code)
+        baseDocument.update({"symbol": code}, {"$set": {"company": result}})
+    except:
+        print('err')
+        pass
+    finally:
+        finish_count += 1
+        print('done: {finish_count}/{totalStockLength},{progress}%'.format(finish_count=finish_count,
+                                                                           totalStockLength=totalStockLength,
+                                                                           progress=finish_count * 100 // totalStockLength))
+
+        pass
+
 
 loop = asyncio.get_event_loop()
 
@@ -239,6 +257,14 @@ def synchronizeStockData():
     totalStockLength = len(stockList)
     for stock in list(stockList):
         loop.run_until_complete(updateStockDocument(stock))
+
+def synchronizeStockCompanyIntroduction():
+    global totalStockLength
+    stockList = getTotalStockList()
+    totalStockLength = len(stockList)
+    for stock in list(stockList):
+        code = stock.get('code')
+        loop.run_until_complete(updateDocumentCompanyIntrodution(code))
 
 
 def synchronizeStockBase():
@@ -258,14 +284,20 @@ def synchronizeStockBase():
             print('{current}/{total}'.format(current=current, total=totalLength))
     for item in list(resultList):
         if item is not None:
-            database.base.update({ "code": item.get('symbol')}, item, True)
+            baseDocument.update({ "code": item.get('symbol')}, item, True)
 
 def removeOldDocuments():
     database.history.drop()
 
 
+def loadStockIntroduction(code):
+    url = 'https://stock.xueqiu.com/v5/stock/f10/cn/company.json?symbol=' + str(code)
+    response = json.loads(session.get(url, headers=headers, cookies=cookies).result().content.decode())
+    return response['data']['company']
+
 if __name__ == '__main__':
-    removeOldDocuments()
+    #synchronizeStockCompanyIntroduction()
+    #removeOldDocuments()
     synchronizeStockData()
     # itchat.auto_login(hotReload=True)
     # itchat.run(True)
