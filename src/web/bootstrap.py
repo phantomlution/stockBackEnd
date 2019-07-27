@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from src.service.stockService import StockService
-from src.script.byKiller import calculateBiKiller, getTotalStockList
+from src.script.byKiller import calculateBiKiller, getTotalStockList, loadStockNotice
 from flask_socketio import SocketIO, emit
 from bson import json_util
 import json
@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, threaded=True)
 
-def success(data):
+def success(data = {}):
     return jsonify({
         "code": "200",
         "data": data
@@ -51,6 +51,27 @@ def stockList():
         "idList": list(mongo.stock.base.find({ "type": 11, "status": 1 }, { "_id": 0 })),
         "nameList": getTotalStockList()
     })
+
+@app.route('/stock/notice')
+def getNotice():
+    code = request.args.get('code')
+    response = loadStockNotice(code)
+    return success(response)
+
+@app.route('/stock/pool', methods=['GET'])
+def getStockPool():
+    return success(mongo.stock.sense.find_one({ "code": 'pool' }, { "_id": 0 }))
+
+@app.route('/stock/pool', methods=['PUT'])
+def updateStockPool():
+    item = request.get_json()
+    model = {
+        "code": "pool",
+        "list": item
+    }
+    mongo.stock.sense.update({"code": "pool"}, model, True)
+    return success()
+
 
 def socketSuccess(data):
     return json.dumps({

@@ -19,7 +19,8 @@ def getTableText(raw):
     return raw.text.split(' ')[0].split('：')[1]
 
 def loadDepartmentDetail(item):
-    r = session.get("http://zl.hzfc.gov.cn" + item, headers=headers)
+    url = "http://zl.hzfc.gov.cn" + item
+    r = session.get(url, headers=headers)
     html = r.result().content.decode()
     soup = BeautifulSoup(html, 'html.parser')
     title = soup.findAll('li', class_='bigT')[0].font.text
@@ -30,6 +31,8 @@ def loadDepartmentDetail(item):
     regexResult = re.search(r'QueryPRJ.*', html)
     positionInfo = regexResult.group().split('\',\'')
     model = {
+        "url": url,
+        "id": item,
         "title": title,
         "roomCount": roomCount,
         "address": address,

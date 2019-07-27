@@ -295,10 +295,24 @@ def loadStockIntroduction(code):
     response = json.loads(session.get(url, headers=headers, cookies=cookies).result().content.decode())
     return response['data']['company']
 
+def loadStockNotice(code):
+    url = "http://data.eastmoney.com/notices/getdata.ashx"
+    params = {
+        "StockCode": code,
+        "CodeType": 1,
+        "PageIndex": 1,
+        "PageSize": 50,
+        "jsObj": "dHBlUEvg",
+        "SecNodeType": 0,
+        "FirstNodeType": 0
+    }
+    content = session.get(url, params=params).result().content.decode('gbk')
+    content_json = trim(content[content.find('=') + 1:-1])
+    return content_json
+
 if __name__ == '__main__':
     #synchronizeStockCompanyIntroduction()
     #removeOldDocuments()
     synchronizeStockData()
     # itchat.auto_login(hotReload=True)
     # itchat.run(True)
-
