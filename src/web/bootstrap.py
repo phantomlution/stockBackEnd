@@ -72,6 +72,11 @@ def updateStockPool():
     mongo.stock.sense.update({"code": "pool"}, model, True)
     return success()
 
+@app.route('/stock/notice/search', methods=['GET'])
+def getStockNoticeSearch():
+    keyword = request.args.get('keyword')
+    result = mongo.stock.notice.find({ "data.NOTICETITLE": { '$regex': r'' + keyword } }, { '_id': 0 })
+    return success(list(result))
 
 def socketSuccess(data):
     return json.dumps({

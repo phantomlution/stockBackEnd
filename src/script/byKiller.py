@@ -3,7 +3,6 @@ import numpy as np
 import json
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import itchat
 from src.service.stockService import StockService
 from src.utils.sessions import FuturesSession
 import asyncio
@@ -19,6 +18,7 @@ client = StockService.getMongoInstance()
 database = client.stock
 historyDocument = database.history
 baseDocument = database.base
+noticeDocument = database.notice
 
 session = FuturesSession(max_workers=50)
 
@@ -65,28 +65,9 @@ def loadJsonFile(filePath):
 
 blackListSet = set(loadJsonFile('../assets/blackList.json'))
 
-@itchat.msg_register([itchat.content.TEXT])
-def text_reply(msg):
-    content = msg['Content']
-    toUserName = msg['ToUserName']
-    if toUserName == FILE_HELPER:
-        if content == '导出':
-            pushMessage('正在导出中')
-            synchronizeStockData(True)
-        else:
-            result = calculateBiKiller('SZ000007', 420)
-            pushMessage(result['brief'])
-
 def numberFormat(num):
     return '%.2f' % num
 
-
-
-def wechatMsgResponse(msg):
-    return msg
-
-def pushMessage(msg):
-    itchat.send(msg, toUserName=FILE_HELPER)
 
 def getStockBase(code):
     url = 'https://stock.xueqiu.com/v5/stock/quote.json?symbol=' + str(code)
@@ -220,8 +201,8 @@ async def updateStockDocument(stock):
     try:
         item = calculateBiKiller(stock.get('code'), 420)
         historyDocument.update({"code": item.get("code")}, item, True)
-    except:
-        print('err')
+    except Exception as e:
+        print(str(e))
         pass
     finally:
         finish_count += 1
@@ -272,19 +253,16 @@ def synchronizeStockBase():
     stockList = getTotalStockList()
     totalLength = len(stockList)
     current = 0
-    resultList = []
     for stock in list(stockList):
         try:
-            result = getStockBase(stock.get('code')).get('data').get('quote')
-            resultList.append(result)
+            item = getStockBase(stock.get('code')).get('data').get('quote')
+            if item is not None:
+                baseDocument.update({"code": item.get('symbol')}, item, True)
         except:
             pass
         finally:
             current += 1
             print('{current}/{total}'.format(current=current, total=totalLength))
-    for item in list(resultList):
-        if item is not None:
-            baseDocument.update({ "code": item.get('symbol')}, item, True)
 
 def removeOldDocuments():
     database.history.drop()
@@ -294,6 +272,16 @@ def loadStockIntroduction(code):
     url = 'https://stock.xueqiu.com/v5/stock/f10/cn/company.json?symbol=' + str(code)
     response = json.loads(session.get(url, headers=headers, cookies=cookies).result().content.decode())
     return response['data']['company']
+
+
+def synchronizeAllNotice():
+    global totalStockLength
+    stockList = getTotalStockList()
+    totalStockLength = len(stockList)
+    for stock in list(stockList):
+        code = stock.get('code')[2:]
+        loop.run_until_complete(asynchrinizeLoadStockNotice(code))
+
 
 def loadStockNotice(code):
     url = "http://data.eastmoney.com/notices/getdata.ashx"
@@ -310,9 +298,33 @@ def loadStockNotice(code):
     content_json = trim(content[content.find('=') + 1:-1])
     return content_json
 
+async def asynchrinizeLoadStockNotice(code):
+    global finish_count
+    global totalStockLength
+    try:
+        item = loadStockNotice(code)
+        if item is not None:
+            item = json.loads(item)
+            if len(item['data']) > 0:
+                item['code'] = code
+                noticeDocument.update({"code": item.get('code')}, item, True)
+    except:
+        print('err')
+        pass
+    finally:
+        finish_count += 1
+        print('done: {finish_count}/{totalStockLength},{progress}%'.format(finish_count=finish_count,
+                                                                           totalStockLength=totalStockLength,
+                                                                           progress=finish_count * 100 // totalStockLength))
+
+        pass
+
 if __name__ == '__main__':
-    #synchronizeStockCompanyIntroduction()
-    #removeOldDocuments()
-    synchronizeStockData()
-    # itchat.auto_login(hotReload=True)
-    # itchat.run(True)
+    # 1. 同步基础信息
+    # synchronizeStockBase()
+    # 2. 同步公司简介
+    # synchronizeStockCompanyIntroduction()
+    # 3. 同步股票数据
+    # synchronizeStockData()
+    # test 同步公告
+    synchronizeAllNotice()
