@@ -19,6 +19,7 @@ database = client.stock
 historyDocument = database.history
 baseDocument = database.base
 noticeDocument = database.notice
+themeDocument = database.theme
 
 session = FuturesSession(max_workers=50)
 
@@ -202,7 +203,7 @@ async def updateStockDocument(stock):
         item = calculateBiKiller(stock.get('code'), 420)
         historyDocument.update({"code": item.get("code")}, item, True)
     except Exception as e:
-        print(str(e))
+        print(e)
         pass
     finally:
         finish_count += 1
@@ -316,8 +317,49 @@ async def asynchrinizeLoadStockNotice(code):
         print('done: {finish_count}/{totalStockLength},{progress}%'.format(finish_count=finish_count,
                                                                            totalStockLength=totalStockLength,
                                                                            progress=finish_count * 100 // totalStockLength))
-
         pass
+
+def loadStockTheme(code):
+    url = "http://f10.eastmoney.com/CoreConception/CoreConceptionAjax"
+    params = {
+        "code": code
+    }
+    content = session.get(url, params=params).result().content
+    response = json.loads(content)
+    if 'hxtc'in response:
+        if len(response['hxtc']) > 0:
+            return response['hxtc'][0]['ydnr'].split(' ')
+
+    return null
+
+async def asynchrinizeLoadStockTheme(code):
+    global finish_count
+    global totalStockLength
+    try:
+        theme = loadStockTheme(code)
+        if theme is not None:
+            model = {
+                "code": code,
+                "theme": theme
+            }
+            themeDocument.update({"code": model.get('code')}, model, True)
+    except Exception as e:
+        print(e)
+        pass
+    finally:
+        finish_count += 1
+        print('done: {finish_count}/{totalStockLength},{progress}%'.format(finish_count=finish_count,
+                                                                           totalStockLength=totalStockLength,
+                                                                           progress=finish_count * 100 // totalStockLength))
+        pass
+
+def synchrinizeStockTheme():
+    global totalStockLength
+    stockList = getTotalStockList()
+    totalStockLength = len(stockList)
+    for stock in list(stockList):
+        code = stock.get('code')
+        loop.run_until_complete(asynchrinizeLoadStockTheme(code))
 
 if __name__ == '__main__':
     # 1. 同步基础信息
@@ -326,5 +368,7 @@ if __name__ == '__main__':
     # synchronizeStockCompanyIntroduction()
     # 3. 同步股票数据
     # synchronizeStockData()
-    # test 同步公告
-    synchronizeAllNotice()
+    # 同步公告
+    # synchronizeAllNotice()
+    # 同步主题
+    synchrinizeStockTheme()
