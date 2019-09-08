@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from src.service.stockService import StockService
-from src.script.byKiller import calculateBiKiller, getTotalStockList, loadStockNotice
+from src.script.byKiller import calculateBiKiller, getTotalStockList, loadStockNotice, getFarmProductIndex
 from flask_socketio import SocketIO, emit
 from bson import json_util
 import json
@@ -48,7 +48,8 @@ def base():
 @app.route('/stock/list')
 def stockList():
     return success({
-        "idList": list(mongo.stock.base.find({ "type": 11, "status": 1 }, { "_id": 0 })),
+        # "idList": list(mongo.stock.base.find({ "type": 11, "status": 1 }, { "_id": 0 })),
+        "idList": list(mongo.stock.base.find({ "type": 11 }, {"_id": 0})),
         "nameList": getTotalStockList()
     })
 
@@ -78,12 +79,21 @@ def getStockNoticeSearch():
     result = mongo.stock.notice.find({ "data.NOTICETITLE": { '$regex': r'' + keyword } }, { '_id': 0 })
     return success(list(result))
 
+@app.route('/stock/theme', methods=['GET'])
+def getStockThemeList():
+    result = mongo.stock.theme.find({}, { "_id": 0 })
+    return success(list(result))
+
 def socketSuccess(data):
     return json.dumps({
         "code": 200,
         "data": data
     }, default=json_util.default)
 
+@app.route('/product/farm', methods=['GET'])
+def searchFarmProductIndex():
+    goodsId = request.args.get('goodsId')
+    return success(getFarmProductIndex(goodsId))
 
 
 @socketio.on('request')

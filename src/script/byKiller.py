@@ -1,6 +1,7 @@
 import datetime
 import numpy as np
 import json
+import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from src.service.stockService import StockService
@@ -21,7 +22,7 @@ baseDocument = database.base
 noticeDocument = database.notice
 themeDocument = database.theme
 
-session = FuturesSession(max_workers=50)
+session = FuturesSession(max_workers=1)
 
 fetch_cookie_url = 'https://xueqiu.com/S/SZ000007'
 
@@ -64,8 +65,6 @@ def loadJsonFile(filePath):
         data = json.load(json_file)
         return data
 
-blackListSet = set(loadJsonFile('../assets/blackList.json'))
-
 def numberFormat(num):
     return '%.2f' % num
 
@@ -92,8 +91,6 @@ def getHistoryData(code, days):
     return session.get(url, params=params, headers=headers, cookies=cookies)
 
 def calculateBiKiller(code, count):
-    if code in blackListSet:
-        raise Exception('代码在黑名单中')
     result = getHistoryData(code, count).result()
     stringResponse = result.content.decode()
 
@@ -197,6 +194,7 @@ finish_count = 0
 totalStockLength = 0
 
 async def updateStockDocument(stock):
+    time.sleep(0.5)
     global finish_count
     global totalStockLength
     try:
@@ -361,14 +359,23 @@ def synchrinizeStockTheme():
         code = stock.get('code')
         loop.run_until_complete(asynchrinizeLoadStockTheme(code))
 
+def getFarmProductIndex(code):
+    url = "http://www.chinaap.com/chinaapindex/index/getBrokenLine"
+    params = {
+        "goodsId": code
+    }
+    content = session.post(url, data=params).result().content
+    result = json.loads(content)
+    return result
+
 if __name__ == '__main__':
     # 1. 同步基础信息
     # synchronizeStockBase()
     # 2. 同步公司简介
     # synchronizeStockCompanyIntroduction()
     # 3. 同步股票数据
-    # synchronizeStockData()
+     synchronizeStockData()
     # 同步公告
     # synchronizeAllNotice()
     # 同步主题
-    synchrinizeStockTheme()
+    # synchrinizeStockTheme()
