@@ -13,6 +13,3 @@ for item in historyDocument.find():
             if abs(dataItem['percent']) > 15:
                 blackList.append(item['code'])
                 break
-
-
-print(blackList)

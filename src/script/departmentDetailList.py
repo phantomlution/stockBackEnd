@@ -47,7 +47,3 @@ def loadAllData():
         itemList = json.load(file)
     for item in itemList:
         loadDepartmentDetail(item)
-
-loadAllData()
-
-print(departmentDetailList)

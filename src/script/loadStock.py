@@ -7,4 +7,3 @@ mysql = MySQL()
 
 for item in list:
     result = mysql.execute('insert into `stock`(`name`, `code`) values (%s, %s)', item)
-    print(result)

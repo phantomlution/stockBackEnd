@@ -39,8 +39,6 @@ result = StockService.get_stock_list()
 for item in result:
     try:
         loadIndex(item['code'], item['name'], 1)
-        print('done')
     except(TypeError):
         if enableSkipSetting:
             mysql.execute('update stock set `skip`=%s where code=%s', (1, item["code"]))
-        print('skip')

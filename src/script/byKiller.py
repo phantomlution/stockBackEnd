@@ -120,6 +120,8 @@ def trim(string):
 
 def resolveData(raw):
     data = raw['data']
+    if 'symbol' not in data:
+        raise Exception('数据不存在')
     code = data['symbol']
     column = data['column']
     itemList = data['item']
@@ -201,6 +203,7 @@ async def updateStockDocument(stock):
         item = calculateBiKiller(stock.get('code'), 420)
         historyDocument.update({"code": item.get("code")}, item, True)
     except Exception as e:
+        print(stock)
         print(e)
         pass
     finally:
@@ -217,8 +220,8 @@ async def updateDocumentCompanyIntrodution(code):
     try:
         result = loadStockIntroduction(code)
         baseDocument.update({"symbol": code}, {"$set": {"company": result}})
-    except:
-        print('err')
+    except Exception as e:
+        print(e)
         pass
     finally:
         finish_count += 1
@@ -257,7 +260,8 @@ def synchronizeStockBase():
             item = getStockBase(stock.get('code')).get('data').get('quote')
             if item is not None:
                 baseDocument.update({"code": item.get('symbol')}, item, True)
-        except:
+        except Exception as e:
+            print(e)
             pass
         finally:
             current += 1
@@ -307,8 +311,8 @@ async def asynchrinizeLoadStockNotice(code):
             if len(item['data']) > 0:
                 item['code'] = code
                 noticeDocument.update({"code": item.get('code')}, item, True)
-    except:
-        print('err')
+    except Exception as e:
+        print(e)
         pass
     finally:
         finish_count += 1

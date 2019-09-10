@@ -9,5 +9,3 @@ x = np.array([
 
 min_max_scaler = preprocessing.MinMaxScaler()
 minmax_x = min_max_scaler.fit_transform(x)
-
-print(minmax_x)
