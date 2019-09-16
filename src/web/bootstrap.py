@@ -53,6 +53,11 @@ def stockList():
         "nameList": getTotalStockList()
     })
 
+@app.route('/stock/capital/flow')
+def capitalFlow():
+    date = request.args.get('date')
+    return success(mongo.stock.capitalFlow.find_one({ "date": date }, { "_id": 0 }))
+
 @app.route('/stock/notice')
 def getNotice():
     code = request.args.get('code')
