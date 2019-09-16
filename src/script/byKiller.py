@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.options import Options
 from src.service.stockService import StockService
 from src.utils.sessions import FuturesSession
 import asyncio
+from src.utils.date import getCurrentTimestamp
 
 FILE_HELPER = 'filehelper'
 
@@ -21,6 +22,7 @@ historyDocument = database.history
 baseDocument = database.base
 noticeDocument = database.notice
 themeDocument = database.theme
+capitalFlowDocument = database.capitalFlow
 
 session = FuturesSession(max_workers=1)
 
@@ -196,7 +198,7 @@ finish_count = 0
 totalStockLength = 0
 
 async def updateStockDocument(stock):
-    time.sleep(0.5)
+    time.sleep(0.3)
     global finish_count
     global totalStockLength
     try:
@@ -355,7 +357,7 @@ async def asynchrinizeLoadStockTheme(code):
                                                                            progress=finish_count * 100 // totalStockLength))
         pass
 
-def synchrinizeStockTheme():
+def synchronizeStockTheme():
     global totalStockLength
     stockList = getTotalStockList()
     totalStockLength = len(stockList)
@@ -372,14 +374,61 @@ def getFarmProductIndex(code):
     result = json.loads(content)
     return result
 
+def synchronizeCapitalFlow():
+    data = getRealTimeCapitalFlow()
+    if 'ya' not in data:
+        raise Exception('数据异常')
+    # [0] 主力净流入
+    # [1] 超大单净流入
+    # [2] 大单净流入
+    # [3] 中单净流入
+    # [4] 小单净流入
+    ya = data['ya']
+    lastYaItem = ya[-1]
+    if lastYaItem == ',,,,':
+        raise Exception('数据不完整，请于15点后同步')
+
+    model = {
+        "date": formatDate(getCurrentTimestamp()),
+        "data": data
+    }
+
+    capitalFlowDocument.update({ "date": model["date"] }, model, True)
+    print('synchronize capital flow success')
+    pass
+
+
+
+def getRealTimeCapitalFlow():
+    url = 'http://ff.eastmoney.com/EM_CapitalFlowInterface/api/js'
+    params = {
+        "id": "ls",
+        "type": "ff",
+        "check": "MLBMS",
+        "cb": "var aff_data =",
+        "js": "{(x)}",
+        "rtntype": 3,
+        "date": "2019-09-11",
+        "acces_token": "1942f5da9b46b069953c873404aad4b5",
+        "_": getCurrentTimestamp()
+    }
+
+    content = session.get(url, params=params).result().content
+    content = str(content)
+    content_json = trim(content[content.find('=') + 1:-1])
+    return json.loads(content_json)
+
+
 if __name__ == '__main__':
     # 1. 同步基础信息
     # synchronizeStockBase()
     # 2. 同步公司简介
     # synchronizeStockCompanyIntroduction()
     # 3. 同步股票数据
-     synchronizeStockData()
+    synchronizeStockData()
+    # 4. 同步当日资金流动情况
+    # synchronizeCapitalFlow()
     # 同步公告
     # synchronizeAllNotice()
     # 同步主题
-    # synchrinizeStockTheme()
+    # synchronizeStockTheme()
