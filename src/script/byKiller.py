@@ -420,14 +420,14 @@ def getRealTimeCapitalFlow():
 
 
 if __name__ == '__main__':
+    # 0. 同步当日资金流动情况
+    synchronizeCapitalFlow()
     # 1. 同步基础信息
     # synchronizeStockBase()
     # 2. 同步公司简介
     # synchronizeStockCompanyIntroduction()
     # 3. 同步股票数据
     synchronizeStockData()
-    # 4. 同步当日资金流动情况
-    # synchronizeCapitalFlow()
     # 同步公告
     # synchronizeAllNotice()
     # 同步主题
