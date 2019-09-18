@@ -258,6 +258,7 @@ def synchronizeStockBase():
     totalLength = len(stockList)
     current = 0
     for stock in list(stockList):
+        time.sleep(0.3)
         try:
             item = getStockBase(stock.get('code')).get('data').get('quote')
             if item is not None:
@@ -421,13 +422,13 @@ def getRealTimeCapitalFlow():
 
 if __name__ == '__main__':
     # 0. 同步当日资金流动情况
-    synchronizeCapitalFlow()
+    # synchronizeCapitalFlow()
     # 1. 同步基础信息
-    # synchronizeStockBase()
+    synchronizeStockBase()
     # 2. 同步公司简介
     # synchronizeStockCompanyIntroduction()
     # 3. 同步股票数据
-    synchronizeStockData()
+    # synchronizeStockData()
     # 同步公告
     # synchronizeAllNotice()
     # 同步主题

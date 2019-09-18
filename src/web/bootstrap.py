@@ -3,6 +3,8 @@ from src.service.stockService import StockService
 from src.script.byKiller import calculateBiKiller, getTotalStockList, loadStockNotice, getFarmProductIndex
 from flask_socketio import SocketIO, emit
 from bson import json_util
+from src.script.extractor.event import extractData
+from src.script.extractor.centualBank import extractAllCentualBank
 import json
 
 mongo = StockService.getMongoInstance()
@@ -99,6 +101,21 @@ def socketSuccess(data):
 def searchFarmProductIndex():
     goodsId = request.args.get('goodsId')
     return success(getFarmProductIndex(goodsId))
+
+@app.route('/financial/information', methods=['GET'])
+def getFinancialInformation():
+    date = request.args.get('date')
+    data = extractData(date)
+
+    return success({
+        "date": date,
+        "data": data
+    })
+
+@app.route('/financial/centralBank', methods=['GET'])
+def getCentralBankFinancialInfo():
+
+    return success(extractAllCentualBank())
 
 
 @socketio.on('request')
