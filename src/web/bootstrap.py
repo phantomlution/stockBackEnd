@@ -60,6 +60,11 @@ def capitalFlow():
     date = request.args.get('date')
     return success(mongo.stock.capitalFlow.find_one({ "date": date }, { "_id": 0 }))
 
+@app.route('/stock/capital/hotMoney')
+def hotMoney():
+    date = request.args.get('date')
+    return success(mongo.stock.hotMoney.find_one({ "date": date }, { "_id": 0 }))
+
 @app.route('/stock/notice')
 def getNotice():
     code = request.args.get('code')

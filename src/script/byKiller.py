@@ -23,6 +23,7 @@ baseDocument = database.base
 noticeDocument = database.notice
 themeDocument = database.theme
 capitalFlowDocument = database.capitalFlow
+hotMoneyDocument = database.hotMoney
 
 session = FuturesSession(max_workers=1)
 
@@ -307,6 +308,7 @@ def loadStockNotice(code):
 async def asynchrinizeLoadStockNotice(code):
     global finish_count
     global totalStockLength
+    time.sleep(0.3)
     try:
         item = loadStockNotice(code)
         if item is not None:
@@ -340,6 +342,7 @@ def loadStockTheme(code):
 async def asynchrinizeLoadStockTheme(code):
     global finish_count
     global totalStockLength
+    time.sleep(0.3)
     try:
         theme = loadStockTheme(code)
         if theme is not None:
@@ -396,7 +399,6 @@ def synchronizeCapitalFlow():
 
     capitalFlowDocument.update({ "date": model["date"] }, model, True)
     print('synchronize capital flow success')
-    pass
 
 
 
@@ -419,17 +421,75 @@ def getRealTimeCapitalFlow():
     content_json = trim(content[content.find('=') + 1:-1])
     return json.loads(content_json)
 
+def synchronizeHotMoney():
+    raw = getHotMoneyData()
+    if 'data' not in raw:
+        raise Exception('数据异常')
+    raw_data = raw['data']
+    response_date = raw_data['n2sDate']
+    current_date = time.strftime('%m-%d')
+    if response_date != current_date:
+        raise Exception('没有当天的数据')
+
+    '''
+        s2n: 北向资金
+            0. 时间点
+            1. 沪股通流入金额
+            2. 沪股通余额
+            3. 深股通流入金额
+            4. 深股通余额
+    
+        n2s: 南向资金
+            0. 时间点
+            1. 港股通(沪)流入金额
+            2. 港股通(沪)余额
+            3. 港股通(深)流入金额
+            4. 港股通(深)余额
+    '''
+
+
+    raw_data['date'] = time.strftime('%Y-%m-%d')
+
+    hotMoneyDocument.update({"date": raw_data["date"]}, raw_data, True)
+    print('synchronize hot money success')
+
+
+def getHotMoneyData():
+    url = 'http://push2.eastmoney.com/api/qt/kamt.rtmin/get'
+    current = getCurrentTimestamp()
+    params = {
+        "fields1": "f1,f2,f3,f4",
+        "fields2": "f51,f52,f53,f54,f55,f56",
+        "cb": "jQuery18304445605268991899_" + str(current),
+        "_": current
+    }
+
+    headers = {
+        "Referer": "http://data.eastmoney.com/hsgt/index.html",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+
+    content = session.get(url, params=params, headers=headers).result().content
+    content = str(content)[len(params['cb']) + 3:-3]
+    return json.loads(content)
+
+def synchronizeCapitalData():
+    # 同步大盘资金
+    synchronizeCapitalFlow()
+    # 同步南北向资金
+    synchronizeHotMoney()
+
 
 if __name__ == '__main__':
-    # 0. 同步当日资金流动情况
-    # synchronizeCapitalFlow()
+    # 0. 同步当日资金
+    synchronizeCapitalData()
     # 1. 同步基础信息
-    synchronizeStockBase()
+    #synchronizeStockBase()
     # 2. 同步公司简介
     # synchronizeStockCompanyIntroduction()
     # 3. 同步股票数据
     # synchronizeStockData()
     # 同步公告
-    # synchronizeAllNotice()
+    #synchronizeAllNotice()
     # 同步主题
     # synchronizeStockTheme()
