@@ -8,6 +8,7 @@ from src.service.stockService import StockService
 from src.utils.sessions import FuturesSession
 import asyncio
 from src.utils.date import getCurrentTimestamp
+import schedule
 
 FILE_HELPER = 'filehelper'
 
@@ -479,17 +480,43 @@ def synchronizeCapitalData():
     # 同步南北向资金
     synchronizeHotMoney()
 
+def initDatabase():
+    # 初始化数据库
+    # 1. 同步基础信息
+    synchronizeStockBase()
+    # 2. 同步公司简介
+    synchronizeStockCompanyIntroduction()
+
+def getScheduledTaskTime(start, minutesOffset):
+    date = start + datetime.timedelta(minutes=minutesOffset)
+    return datetime.datetime.strftime(date, '%H:%M')
+
+def synchronizeCapitalDataTask():
+    try:
+        synchronizeCapitalData()
+    except Exception as e:
+        print(e)
+
+def runEveryDayRoutine():
+    now = datetime.datetime.now()
+    # 0. 同步当日资金
+    schedule.every().day.at(getScheduledTaskTime(now, 1)).do(synchronizeCapitalDataTask).tag('daily-tasks')
+    # 1. 同步股票数据
+    schedule.every().day.at(getScheduledTaskTime(now, 2)).do(synchronizeStockData).tag('daily-tasks')
+    # 2. 同步公告
+    schedule.every().day.at(getScheduledTaskTime(now, 30)).do(synchronizeAllNotice).tag('daily-tasks')
+    # 3. 同步主题
+    schedule.every().day.at(getScheduledTaskTime(now, 60)).do(synchronizeStockTheme).tag('daily-tasks')
+
+def job():
+    print("I'm working...")
+
+
 
 if __name__ == '__main__':
-    # 0. 同步当日资金
-    synchronizeCapitalData()
-    # 1. 同步基础信息
-    #synchronizeStockBase()
-    # 2. 同步公司简介
-    # synchronizeStockCompanyIntroduction()
-    # 3. 同步股票数据
-    # synchronizeStockData()
-    # 同步公告
-    #synchronizeAllNotice()
-    # 同步主题
-    # synchronizeStockTheme()
+    # 每日同步任务
+    runEveryDayRoutine()
+    while True:
+        schedule.run_pending()
+
+
