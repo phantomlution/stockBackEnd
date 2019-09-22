@@ -53,11 +53,8 @@ class StockBaseDataJob:
             self.job.fail(task_id, e)
             print(e)
 
-    def run(self):
-        self.job.start(self.start, self.end)
-
-    def end(self):
-        print(self.job.get_progress())
+    def run(self, end_func=None):
+        self.job.start(self.start, end_func)
 
     def start(self):
         self.cookies = Auth.get_snow_ball_auth()

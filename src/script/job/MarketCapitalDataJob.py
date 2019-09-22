@@ -124,11 +124,5 @@ class MarketCapitalDataJob:
                 self.job.fail(task["id"], e)
                 print(e)
 
-
-    def end(self):
-        print(self.job.get_progress())
-        pass
-
-
-    def run(self):
-        self.job.start(self.start, self.end)
+    def run(self, end_func=None):
+        self.job.start(self.start, end_func)

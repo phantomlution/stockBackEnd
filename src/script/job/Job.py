@@ -53,11 +53,17 @@ class Job:
     def start(self, start_func, done_func=None):
         self.start_time = datetime.datetime.now()
         self.done_func = done_func
+        print()
+        print(self.get_progress())
         start_func()
 
     def end(self):
         self.end_time = datetime.datetime.now()
         self.execute_duration = (self.end_time - self.start_time).seconds
+        progress = self.get_progress()
+        print(progress)
+        if progress["fail"] > 0:
+            print('有{}条任务失败'.format(progress['fail']))
 
     # 获取进度
     def get_progress(self):

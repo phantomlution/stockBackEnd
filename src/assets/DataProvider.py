@@ -31,5 +31,5 @@ class DataProvider:
                 "code": 'SZ' + str.strip(stock['code'])
             })
 
-        return result
+        return result[:20]
 
