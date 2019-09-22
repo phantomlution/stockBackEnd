@@ -1,7 +1,7 @@
 from src.utils.sessions import FuturesSession
 import json
 import time
-from src.service.stockService import StockService
+from src.service.StockService import StockService
 session = FuturesSession(max_workers=50)
 
 client = StockService.getMongoInstance()

@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template
-from src.service.stockService import StockService
+from src.service.StockService import StockService
 from flask_cors import CORS
 
 mongo = StockService.getMongoInstance()

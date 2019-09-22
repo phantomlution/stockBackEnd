@@ -4,7 +4,7 @@
 from src.script.job.Job import Job
 from src.utils.sessions import FuturesSession
 import json
-from src.service.stockService import StockService
+from src.service.StockService import StockService
 from src.utils import date
 import time
 

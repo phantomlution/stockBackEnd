@@ -10,7 +10,7 @@ from src.utils.sessions import FuturesSession
 from src.script.auth.Auth import Auth
 import json
 import numpy as np
-from src.service.stockService import StockService
+from src.service.StockService import StockService
 
 client = StockService.getMongoInstance()
 history_document = client.stock.history
@@ -25,10 +25,9 @@ class StockTradeDataJob:
             'Origin': 'https://xueqiu.com',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
         }
-        provider = DataProvider()
-        stock_list = provider.get_stock_list()
-        self.job = Job(name='测试')
-        for stock in stock_list[:10]:
+        stock_list = DataProvider().get_stock_list()
+        self.job = Job(name='股票交易数据')
+        for stock in stock_list:
             self.job.add(stock)
 
     # 校验返回数据的时间序列是否正确

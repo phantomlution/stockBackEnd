@@ -1,6 +1,9 @@
 from flask import Flask, request, jsonify
-from src.service.stockService import StockService
-from src.script.byKiller import calculateBiKiller, getTotalStockList, loadStockNotice, getFarmProductIndex
+from src.service.StockService import StockService
+from src.script.job.StockTradeDataJob import StockTradeDataJob
+from src.script.job.StockNoticeJob import StockNoticeJob
+from src.assets.DataProvider import DataProvider
+from src.service.DataService import DataService
 from flask_socketio import SocketIO, emit
 from bson import json_util
 from src.script.extractor.event import extractData
@@ -12,6 +15,13 @@ mongo = StockService.getMongoInstance()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, threaded=True)
+
+# TODO
+calculateBiKiller = getattr(StockTradeDataJob(), 'get_stock')
+# TODO
+getTotalStockList = getattr(DataProvider(), 'get_stock_list')
+# TODO
+loadStockNotice = getattr(StockNoticeJob(), 'load_stock_notice')
 
 def success(data = {}):
     return jsonify({
@@ -105,7 +115,7 @@ def socketSuccess(data):
 @app.route('/product/farm', methods=['GET'])
 def searchFarmProductIndex():
     goodsId = request.args.get('goodsId')
-    return success(getFarmProductIndex(goodsId))
+    return success(DataService.get_farm_product_index(goodsId))
 
 @app.route('/financial/information', methods=['GET'])
 def getFinancialInformation():
