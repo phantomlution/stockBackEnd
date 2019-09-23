@@ -55,6 +55,7 @@ class StockThemeDataJob:
         self.job.start(self.start, end_func)
 
     def start(self):
+        theme_document.drop()
         loop = asyncio.get_event_loop()
         for task in self.job.task_list:
             stock = task['raw']

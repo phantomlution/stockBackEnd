@@ -132,6 +132,13 @@ def getCentralBankFinancialInfo():
 
     return success(extractAllCentualBank())
 
+@app.route('/financial/product', methods=['GET'])
+def get_financial_product():
+    key = request.args.get('key')
+    print(key)
+    result = mongo.stock.temp.find_one({ "key": key })
+    return success(list(result['list']))
+
 
 @socketio.on('request')
 def test_message(message):

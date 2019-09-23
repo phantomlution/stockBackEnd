@@ -1,3 +1,7 @@
+'''
+    提取数据源中的财经事件
+'''
+
 import requests
 from bs4 import BeautifulSoup
 from src.utils.extractor import Extractor

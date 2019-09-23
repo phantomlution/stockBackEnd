@@ -5,6 +5,7 @@
 '''
 import uuid
 import datetime
+from threading import Timer
 
 
 class Job:
@@ -18,6 +19,7 @@ class Job:
         self.end_time = None
         self.execute_duration = 0
         self.done_func = None
+        self.progress_timer_interval = 60  # 打印进度间隔
 
     # 生成任务列表
     def add(self, data):
@@ -53,8 +55,8 @@ class Job:
     def start(self, start_func, done_func=None):
         self.start_time = datetime.datetime.now()
         self.done_func = done_func
-        print()
-        print(self.get_progress())
+        print('')
+        self.start_progress_timer()
         start_func()
 
     def end(self):
@@ -65,19 +67,29 @@ class Job:
         if progress["fail"] > 0:
             print('有{}条任务失败'.format(progress['fail']))
 
+    # 打印实时进度
+    def start_progress_timer(self):
+        progress = self.get_progress()
+        if progress['done']:
+            return
+        print(progress)
+        timer = Timer(self.progress_timer_interval, self.start_progress_timer)
+        timer.start()
+
     # 获取进度
     def get_progress(self):
         total_count = len(self.task_list)
         success_count = len(self.success_list)
         fail_count = len(self.fail_list)
         finish_count = success_count + fail_count
+        is_done = finish_count == total_count
 
         return {
-            "done": finish_count == total_count,
+            "done": is_done,
             "name": self.name,
             "total": total_count,
             "finish": finish_count,
             "success": success_count,
             "fail": fail_count,
-            "cost_in_seconds": self.execute_duration
+            "cost_in_seconds": (datetime.datetime.now() - self.start_time).seconds if is_done is False else self.execute_duration
         }

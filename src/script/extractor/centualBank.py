@@ -1,3 +1,7 @@
+'''
+    获取各国央行的数据
+'''
+
 import requests
 from bs4 import BeautifulSoup
 from src.utils.extractor import Extractor

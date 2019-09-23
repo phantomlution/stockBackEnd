@@ -10,7 +10,7 @@ import time
 import asyncio
 
 client = StockService.getMongoInstance()
-noticeDocument = client.stock.notice
+notice_document = client.stock.notice
 session = FuturesSession(max_workers=1)
 
 
@@ -44,7 +44,7 @@ class StockNoticeJob:
                 item = json.loads(item)
                 if len(item['data']) > 0:
                     item['code'] = code
-                    noticeDocument.update({"code": item.get('code')}, item, True)
+                    notice_document.update({"code": item.get('code')}, item, True)
                 self.job.success(task_id)
             else:
                 raise Exception('找不到[{code}]的公告'.format(code=code))
@@ -56,6 +56,7 @@ class StockNoticeJob:
         self.job.start(self.start, end_func)
 
     def start(self):
+        notice_document.drop()
         loop = asyncio.get_event_loop()
         for task in self.job.task_list:
             stock = task['raw']

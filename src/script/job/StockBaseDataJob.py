@@ -57,6 +57,7 @@ class StockBaseDataJob:
         self.job.start(self.start, end_func)
 
     def start(self):
+        base_document.drop()
         self.cookies = Auth.get_snow_ball_auth()
         loop = asyncio.get_event_loop()
         for task in self.job.task_list:
@@ -64,3 +65,7 @@ class StockBaseDataJob:
             task_id = task["id"]
             code = stock.get('code')
             loop.run_until_complete(self.asynchronize_load_stock_base(task_id, code))
+
+
+if __name__ == '__main__':
+    StockBaseDataJob().run()
