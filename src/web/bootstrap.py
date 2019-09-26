@@ -9,6 +9,8 @@ from bson import json_util
 from src.script.extractor.event import extractData
 from src.script.extractor.centualBank import extractAllCentualBank
 import json
+from src.service.HtmlService import scratch_html
+
 
 mongo = StockService.getMongoInstance()
 
@@ -138,6 +140,12 @@ def get_financial_product():
     print(key)
     result = mongo.stock.temp.find_one({ "key": key })
     return success(list(result['list']))
+
+@app.route('/redirect', methods=['GET'])
+def redirect():
+    url = request.args.get('url')
+
+    return scratch_html(url)
 
 
 @socketio.on('request')
