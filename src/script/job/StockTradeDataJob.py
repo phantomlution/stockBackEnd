@@ -11,6 +11,7 @@ from src.script.auth.Auth import Auth
 import json
 import numpy as np
 from src.service.StockService import StockService
+from threading import Timer
 
 client = StockService.getMongoInstance()
 history_document = client.stock.history
@@ -20,6 +21,8 @@ session = FuturesSession(max_workers=1)
 class StockTradeDataJob:
     def __init__(self):
         self.cookies = {}
+        # 请求间隔
+        self.request_interval = 0.5
         self.headers = {
             'Accept': 'application/json, text/plain, */*',
             'Origin': 'https://xueqiu.com',
@@ -121,8 +124,17 @@ class StockTradeDataJob:
 
         return self.extract_stock_data(json.loads(string_response))
 
+    def update_token(self):
+        progress = self.job.get_progress()
+        if progress['done']:
+            return
+        self.cookies = Auth.get_snow_ball_auth()
+
+        timer = Timer(60, self.update_token)
+        timer.start()
+
     async def update_stock_document(self, task_id, stock):
-        time.sleep(1)
+        time.sleep(self.request_interval)
         try:
             item = self.get_stock(stock.get('code'), 420)
             history_document.update({"code": item.get("code")}, item, True)
@@ -136,7 +148,7 @@ class StockTradeDataJob:
     def start(self):
         history_document.drop()
         loop = asyncio.get_event_loop()
-        self.cookies = Auth.get_snow_ball_auth()
+        self.update_token()
         task_list = self.job.task_list
         for task in task_list:
             stock = task['raw']
