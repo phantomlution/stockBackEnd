@@ -49,7 +49,6 @@ class StockThemeDataJob:
                 raise Exception('找不到[{code}]的主题'.format(code=code))
         except Exception as e:
             self.job.fail(task_id, e)
-            print(e)
 
     def run(self, end_func=None):
         self.job.start(self.start, end_func)

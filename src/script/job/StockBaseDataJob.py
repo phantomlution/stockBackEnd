@@ -39,7 +39,7 @@ class StockBaseDataJob:
         return response['data']['company']
 
     async def asynchronize_load_stock_base(self, task_id, code):
-        time.sleep(0.3)
+        time.sleep(0.5)
         try:
             item = self.load_stock_base(code).get('data').get('quote')
             if item is not None:
@@ -51,7 +51,6 @@ class StockBaseDataJob:
                 raise Exception('找不到[{code}]的基本信息'.format(code=code))
         except Exception as e:
             self.job.fail(task_id, e)
-            print(e)
 
     def run(self, end_func=None):
         self.job.start(self.start, end_func)

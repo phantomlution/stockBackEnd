@@ -6,6 +6,7 @@
 import uuid
 import datetime
 from threading import Timer
+import math
 
 
 class Job:
@@ -39,9 +40,16 @@ class Job:
     def fail(self, task_id, error):
         self.fail_list.append({
             "id": task_id,
-            ""
             "error": error
         })
+        # 打印失败信息
+        for task in self.task_list:
+            if task["id"] == task_id:
+                print('\n--- [{}] failed ---\n'.format(task_id))
+                print('[{}]{}'.format(self.name, task['raw']))
+                print(error)
+                print('\n--- [{}] failed ---\n'.format(task_id))
+                break
         self.check_progress()
 
     def check_progress(self):
@@ -83,6 +91,7 @@ class Job:
         fail_count = len(self.fail_list)
         finish_count = success_count + fail_count
         is_done = finish_count == total_count
+        cost_in_seconds = (datetime.datetime.now() - self.start_time).seconds if is_done is False else self.execute_duration
 
         return {
             "done": is_done,
@@ -91,5 +100,5 @@ class Job:
             "finish": finish_count,
             "success": success_count,
             "fail": fail_count,
-            "cost_in_seconds": (datetime.datetime.now() - self.start_time).seconds if is_done is False else self.execute_duration
+            "cost": '{}m{}s'.format(math.floor(cost_in_seconds / 60), cost_in_seconds % 60)
         }

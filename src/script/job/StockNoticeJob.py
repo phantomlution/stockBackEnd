@@ -37,7 +37,7 @@ class StockNoticeJob:
         return content_json
 
     async def asynchronize_load_stock_notice(self, task_id, code):
-        time.sleep(0.3)
+        time.sleep(0.8)
         try:
             item = self.load_stock_notice(code)
             if item is not None:
@@ -50,7 +50,6 @@ class StockNoticeJob:
                 raise Exception('找不到[{code}]的公告'.format(code=code))
         except Exception as e:
             self.job.fail(task_id, e)
-            print(e)
 
     def run(self, end_func=None):
         self.job.start(self.start, end_func)

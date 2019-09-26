@@ -122,14 +122,13 @@ class StockTradeDataJob:
         return self.extract_stock_data(json.loads(string_response))
 
     async def update_stock_document(self, task_id, stock):
-        time.sleep(0.3)
+        time.sleep(1)
         try:
             item = self.get_stock(stock.get('code'), 420)
             history_document.update({"code": item.get("code")}, item, True)
             self.job.success(task_id)
         except Exception as e:
             self.job.fail(task_id, e)
-            print(e)
 
     def run(self, end_func=None):
         self.job.start(self.start, end_func)

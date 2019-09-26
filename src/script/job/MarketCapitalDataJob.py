@@ -122,7 +122,6 @@ class MarketCapitalDataJob:
                 self.job.success(task['id'])
             except Exception as e:
                 self.job.fail(task["id"], e)
-                print(e)
 
     def run(self, end_func=None):
         self.job.start(self.start, end_func)
