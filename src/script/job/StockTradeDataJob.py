@@ -1,17 +1,13 @@
 '''
-    同步交易日数据
+    获取股票交易数据
 '''
 from src.script.job.Job import Job
+from src.utils.sessions import FuturesSession
+from src.utils import date
+import json
+from src.service.StockService import StockService
 from src.assets.DataProvider import DataProvider
 import asyncio
-import time
-import datetime
-from src.utils.sessions import FuturesSession
-from src.script.auth.Auth import Auth
-import json
-import numpy as np
-from src.service.StockService import StockService
-from threading import Timer
 
 client = StockService.getMongoInstance()
 history_document = client.stock.history
@@ -20,125 +16,94 @@ session = FuturesSession(max_workers=1)
 
 class StockTradeDataJob:
     def __init__(self):
-        self.cookies = {}
-        # 请求间隔
-        self.request_interval = 0.5
-        self.headers = {
-            'Accept': 'application/json, text/plain, */*',
-            'Origin': 'https://xueqiu.com',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
-        }
         stock_list = DataProvider().get_stock_list()
         self.job = Job(name='股票交易数据')
         for stock in stock_list:
             self.job.add(stock)
 
-    # 校验返回数据的时间序列是否正确
-    def check_time_sequence(self, item_list, timestamp_position):
-        for index, item in enumerate(item_list):
-            if index > 0 and index < len(item_list):
-                current = item_list[index]
-                former = item_list[index - 1]
-                if current[timestamp_position] < former[timestamp_position]:
-                    return False
-        return True
-
-    def extract_column(self, item_list, index):
-        result = []
-        for item in item_list:
-            result.append(item[index])
-        return result
-
-    def extract_stock_data(self, raw):
-        data = raw['data']
-        if 'symbol' not in data:
-            raise Exception('数据不存在')
-        code = data['symbol']
-        column = data['column']
-        itemList = data['item']
-        totalLength = len(itemList)
-        if totalLength == 0:
-            raise Exception('无数据')
-
-        if self.check_time_sequence(itemList, column.index('timestamp')) is not True:
-            raise Exception('序列错误')
-
-        closeList = self.extract_column(itemList, column.index('close'))
-        jidazhi = []
-        for index, stock in enumerate(closeList):
-            if index > 0 and index < len(closeList) - 1:
-                former = closeList[index - 1]
-                current = closeList[index]
-                later = closeList[index + 1]
-                if current >= former and current >= later:
-                    jidazhi.append(current)
-
-        jixiaozhi = []
-        for index, stock in enumerate(closeList):
-            if index > 0 and index < len(closeList) - 1:
-                former = closeList[index - 1]
-                current = closeList[index]
-                later = closeList[index + 1]
-                if current <= former and current <= later:
-                    jixiaozhi.append(current)
-
-        lastItem = itemList[-1]
-        lastEndPrice = lastItem[column.index('close')]
-        maxAverage = np.mean(jidazhi)
-        minAverage = np.mean(jixiaozhi)
-        totalAverage = np.mean([maxAverage, minAverage])
-        diffPercent = (lastEndPrice - totalAverage) / totalAverage * 100
-
-        return {
-            "code": code,
-            "last": lastEndPrice,
-            "maxAverage": maxAverage,
-            "minAverage": minAverage,
-            "diffPercent": diffPercent,
-            "avg": totalAverage,
-            "count": totalLength,
-            "column": column,
-            "data": itemList,
-            "updateDate": int(datetime.datetime.now().timestamp() * 1000 // 1)
-        }
-
-    def get_stock_history_data(self, code, days):
-        session.head('https://xueqiu.com/S/' + code)
-
-        url = 'https://stock.xueqiu.com/v5/stock/chart/kline.json'
-        timestamp = str(int(datetime.datetime.now().timestamp() * 1000 // 1))
-        indicator = 'kline,ma,macd,kdj,boll,rsi,wr,bias,cci,psy,pe,pb,ps,pcf,market_capital,agt,ggt,balance'
+    def load_stock_data(self, code):
+        url = "http://pdfm.eastmoney.com/EM_UBG_PDTI_Fast/api/js"
+        current = date.getCurrentTimestamp()
         params = {
-            'symbol': code,
-            'begin': timestamp,
-            'period': 'day',
-            'type': 'before',
-            'count': '-' + str(days),
-            'indicator': indicator
+            "rtntype": 6,
+            # token: 4f1862fc3b5e77c150a2b985b12db0fd
+            "cb": 'jQuery18308087247480464783_' + str(current),
+            "id": code[2:] + ('2' if code[:2] == 'SZ' else '1'),
+            "type": "k",
+            "authorityType": 'fa', # 前复权
+            "_": current
         }
-        return session.get(url, params=params, headers=self.headers, cookies=self.cookies)
+        content = session.get(url, params=params).result().content.decode()
+        content_json = str.strip(str(content)[len(params['cb']) + 1:-1])
+        if content_json == '{stats:false}':
+            raise Exception('数据异常')
+        return json.loads(content_json)
 
-    def get_stock(self, code, count):
-        result = self.get_stock_history_data(code, count).result()
-        string_response = result.content.decode()
-
-        return self.extract_stock_data(json.loads(string_response))
-
-    def update_token(self):
-        progress = self.job.get_progress()
-        if progress['done']:
-            return
-        self.cookies = Auth.get_snow_ball_auth()
-
-        timer = Timer(60, self.update_token)
-        timer.start()
-
-    async def update_stock_document(self, task_id, stock):
-        time.sleep(self.request_interval)
+    async def asynchronize_load_stock_data(self, task_id, code):
+        # time.sleep(0.3)
         try:
-            item = self.get_stock(stock.get('code'), 420)
-            history_document.update({"code": item.get("code")}, item, True)
-            self.job.success(task_id)
+            item = self.load_stock_data(code)
+            if len(item['data']) > 0:
+                item['code'] = code
+                item['column'] = [
+                    'date',
+                    'open',
+                    'close',
+                    'max',
+                    'min',
+                    'volume', # 手数
+                    'amount',
+                    'amplitude'
+                ]
+
+                # 计算要数据转换的列
+                need_parse_float_list = []
+                for idx, field in enumerate(item['column']):
+                    if field not in ['date', 'amplitude']:
+                        need_parse_float_list.append(idx)
+
+                # 读取最新总流通股
+                last_volume = item['flow'][-1]['ltg']
+
+                # 数据量太大,只保留一部分
+                data_list = []
+                for data_index, data in enumerate(item['data'][-420:]):
+                    raw_data_arr = data.split(',')
+                    if len(raw_data_arr) != len(item['column']):
+                        raise Exception('字段列数不匹配')
+                    data_arr = []
+                    # 进行数据类型转换
+                    for column_index, column in enumerate(raw_data_arr):
+                        if column_index in need_parse_float_list:
+                            data_arr.append(float(column))
+                        else:
+                            data_arr.append(column)
+
+                    # 计算涨跌幅
+                    close_field_index = item['column'].index('close')
+                    if data_index == 0:
+                        percent = '-'
+                    else:
+                        yesterday_close_value = data_list[data_index - 1][close_field_index]
+                        today_close_value = data_arr[close_field_index]
+                        percent = round((today_close_value - yesterday_close_value) * 100 / yesterday_close_value, 2)
+                    data_arr.append(percent)
+
+                    # 计算换手率，忽略历史流通股的影响，全部按照最新流通股计算，只关心成交量
+                    volume_index = item['column'].index('volume')
+                    # 手数转化成股票数量
+                    turnover_rate = round(data_arr[volume_index] * 100 * 100 / last_volume, 2)
+                    data_arr.append(turnover_rate)
+
+                    data_list.append(data_arr)
+
+                item['column'].append('percent')
+                item['column'].append('turnoverRate')
+                item['data'] = data_list
+                history_document.update({"code": item.get('code')}, item, True)
+                self.job.success(task_id)
+            else:
+                raise Exception('找不到[{code}]的数据'.format(code=code))
         except Exception as e:
             self.job.fail(task_id, e)
 
@@ -148,9 +113,8 @@ class StockTradeDataJob:
     def start(self):
         history_document.drop()
         loop = asyncio.get_event_loop()
-        self.update_token()
-        task_list = self.job.task_list
-        for task in task_list:
+        for task in self.job.task_list:
             stock = task['raw']
-            task_id = task['id']
-            loop.run_until_complete(self.update_stock_document(task_id, stock))
+            task_id = task["id"]
+            code = stock.get('code')
+            loop.run_until_complete(self.asynchronize_load_stock_data(task_id, code))

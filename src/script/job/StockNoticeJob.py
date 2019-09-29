@@ -37,7 +37,7 @@ class StockNoticeJob:
         return content_json
 
     async def asynchronize_load_stock_notice(self, task_id, code):
-        time.sleep(0.8)
+        time.sleep(0.3)
         try:
             item = self.load_stock_notice(code)
             if item is not None:

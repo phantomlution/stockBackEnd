@@ -89,11 +89,9 @@ class MarketCapitalDataJob:
         raw = self.get_hot_money_data()
         if 'data' not in raw:
             raise Exception('[北向资金]数据异常')
+
         raw_data = raw['data']
         response_date = raw_data['n2sDate']
-        current_date = time.strftime('%m-%d')
-        if response_date != current_date:
-            raise Exception('[北向资金]没有当天的数据')
 
         '''
             s2n: 北向资金
@@ -125,3 +123,6 @@ class MarketCapitalDataJob:
 
     def run(self, end_func=None):
         self.job.start(self.start, end_func)
+
+if __name__ == '__main__':
+   MarketCapitalDataJob().run()
