@@ -17,13 +17,9 @@ def scratch_html(url):
     src_element_list = html.find_all(src=True)
     for src_element in src_element_list:
         src_element['src'] = parse.urljoin(url, src_element['src'])
-        print(src_element)
 
     href_element_list = html.find_all(href=True)
     for href_element in href_element_list:
         href_element['href'] = parse.urljoin(url, href_element['href'])
 
     return str(html)
-
-
-print(scratch_html('http://kx.fx678.com'))

@@ -13,10 +13,10 @@ if __name__ == '__main__':
 
     pending_task = [
         # 'StockBaseDataJob', # 数据库初始化时需要调用 TODO 寻找新的数据源
-        # 'MarketCapitalDataJob',
+        'MarketCapitalDataJob',
         'StockTradeDataJob',
-        # 'StockThemeDataJob',
-        # 'StockNoticeJob'
+        'StockThemeDataJob',
+        'StockNoticeJob'
     ]
 
     JobScheduler(pending_task, locals()).start()

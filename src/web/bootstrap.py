@@ -19,7 +19,7 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, threaded=True)
 
 # TODO
-calculateBiKiller = getattr(StockTradeDataJob(), 'get_stock')
+calculateBiKiller = getattr(StockTradeDataJob(), 'load_stock_data')
 # TODO
 getTotalStockList = getattr(DataProvider(), 'get_stock_list')
 # TODO
@@ -137,9 +137,15 @@ def getCentralBankFinancialInfo():
 @app.route('/financial/product', methods=['GET'])
 def get_financial_product():
     key = request.args.get('key')
-    print(key)
     result = mongo.stock.temp.find_one({ "key": key })
     return success(list(result['list']))
+
+@app.route('/financial/shibor', methods=['GET'])
+def get_financial_shibor():
+    start = request.args.get('start')
+    end = request.args.get('end')
+    return success(DataService.get_shibor_data(start, end))
+
 
 @app.route('/redirect', methods=['GET'])
 def redirect():
