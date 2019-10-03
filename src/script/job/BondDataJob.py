@@ -1,7 +1,6 @@
 '''
     同步债券发行数据
 '''
-import requests
 import json
 from src.utils.date import time_format, get_split_range
 from bs4 import BeautifulSoup
@@ -9,6 +8,9 @@ from src.utils.extractor import Extractor
 import time
 from src.service.StockService import StockService
 import datetime
+from src.utils.sessions import FuturesSession
+session = FuturesSession(max_workers=1)
+
 client = StockService.getMongoInstance()
 sync_document = client.stock.sync
 bond_document = client.stock.bond
@@ -113,7 +115,6 @@ class BondDataJob:
         }]
 
     def load_bond(self, bond_no, start, end, page_no=1, page_size=30):
-        time.sleep(0.5)
         url = 'http://www.chinamoney.com.cn/ags/ms/cm-u-notice-issue/clinrAnNotice'
         params = {
             "channelId": 2561,
@@ -128,18 +129,18 @@ class BondDataJob:
             "timeln": 1,
         }
 
-        return json.loads(requests.get(url, params=params).content)
+        return json.loads(session.get(url, params=params).result().content)
 
     def get_html(self, url):
         headers = {
             "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
         }
 
-        response = requests.get(url, headers=headers)
-        return response.content.decode()
+        response = session.get(url, headers=headers)
+        return response.result().content.decode()
 
     # 强制校验对应的列名，以防产生赞数据
-    def assert_field_name(self, data, name):
+    def assert_field_name(self, data, name, default=None):
         target_row = -1
         target_column = - 1
         for rowIndex, row in enumerate(data):
@@ -157,9 +158,12 @@ class BondDataJob:
                     break
 
         if target_row == -1:
-            print(data)
-            print(name)
-            raise Exception('数据错位')
+            if default is None:
+                print(data)
+                print(name)
+                raise Exception('数据错位')
+            else:
+                return default
         else:
             value = data[target_row][target_column + 1] + ''
             return str.strip(value)
@@ -196,7 +200,9 @@ class BondDataJob:
                         'interest_rate_type': self.assert_field_name(raw_data, '计息方式'),
                         'pay_interest_duration': self.assert_field_name(raw_data, '付息频率'),
                         'issue_start': self.assert_field_name(raw_data, '上市流通日'),
-                        'issue_end': self.assert_field_name(raw_data, '交易流通终止日')
+                        'issue_end': self.assert_field_name(raw_data, '交易流通终止日'),
+                        'start_interest_date': self.assert_field_name(raw_data, '起息日', default=''),
+                        'pay_back_date': self.assert_field_name(raw_data, '兑付日', default='')
                     }
 
                 record['data'] = data
