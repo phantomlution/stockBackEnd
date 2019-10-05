@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from src.service.StockService import StockService
+from src.service.BondService import BondService
 from src.script.job.StockTradeDataJob import StockTradeDataJob
 from src.script.job.StockNoticeJob import StockNoticeJob
 from src.assets.DataProvider import DataProvider
@@ -9,7 +10,7 @@ from bson import json_util
 from src.script.extractor.event import extractData
 from src.script.extractor.centualBank import extractAllCentualBank
 import json
-from src.service.HtmlService import scratch_html
+from src.service.HtmlService import get_parsed_href_html
 
 
 mongo = StockService.getMongoInstance()
@@ -146,21 +147,44 @@ def get_financial_shibor():
     end = request.args.get('end')
     return success(DataService.get_shibor_data(start, end))
 
+@app.route('/financial/bond/list', methods=['GET'])
+def get_bond_list():
+    return success(BondService.get_stock_bond_list())
+
+@app.route('/financial/estate/date/list', methods=['GET'])
+def get_estate_date_list():
+    sync_document = mongo.stock.sync
+    result = []
+    date_list = sync_document.find({"key": { "$regex": "^estate"}, "done": True })
+    for date in date_list:
+        result.append( date['key'].split('_')[1])
+
+    return success(result)
+
+@app.route('/financial/estate', methods=['GET'])
+def get_estate_data():
+    date = request.args.get('date')
+    estate_document = mongo.stock.estate
+
+    return success(list(estate_document.find({ "date": date }, { "_id": 0 })))
+
+
+
 
 @app.route('/redirect', methods=['GET'])
 def redirect():
     url = request.args.get('url')
 
-    return scratch_html(url)
+    return get_parsed_href_html(url)
 
 
 @socketio.on('request')
 def test_message(message):
     key = message['key']
     params = message['params']
-    requestId = message['requestId']
+    request_id = message['requestId']
     if key == 'stockDetail':
-        emit('response_' + requestId, socketSuccess(getStockDetail(params)))
+        emit('response_' + request_id, socketSuccess(getStockDetail(params)))
 
 if __name__ == '__main__':
     # app.run(port=5001)

@@ -19,100 +19,103 @@ class BondDataJob:
 
     def __init__(self):
         #  同步数据间隔的天数
-        self.sync_duration = 1
+        self.sync_duration = 2
         self.sync_table_key = 'bond_data'
         # 债券类型列表
-        self.bond_type_list = [{
-            "valueName": "1",
-            "tabShrtNm": "",
-            "tabName": "同业存单",
-            "typeSrno": "100041"
-        }, {
-            "valueName": "3",
-            "tabShrtNm": "",
-            "tabName": "国债",
-            "typeSrno": "100001"
-        }, {
-            "valueName": "5",
-            "tabShrtNm": "",
-            "tabName": "地方政府债",
-            "typeSrno": "100011"
-        }, {
-            "valueName": "15",
-            "tabShrtNm": "",
-            "tabName": "政策性金融债",
-            "typeSrno": "100003"
-        }, {
-            "valueName": "17",
-            "tabShrtNm": "",
-            "tabName": "二级资本工具",
-            "typeSrno": "100054,100005"
-        }, {
-            "valueName": "50",
-            "tabShrtNm": "",
-            "tabName": "普通金融债",
-            "typeSrno": "100007"
-        }, {
-            "valueName": "52",
-            "tabShrtNm": "",
-            "tabName": "证券公司短期融资券",
-            "typeSrno": "100024"
-        }, {
-            "valueName": "60",
-            "tabShrtNm": "",
-            "tabName": "资产支持证券",
-            "typeSrno": "999999"
-        }, {
-            "valueName": "63",
-            "tabShrtNm": "",
-            "tabName": "政府支持机构债券",
-            "typeSrno": "100027"
-        }, {
-            "valueName": "64",
-            "tabShrtNm": "",
-            "tabName": "短期融资券",
-            "typeSrno": "100006"
-        }, {
-            "valueName": "65",
-            "tabShrtNm": "",
-            "tabName": "中期票据",
-            "typeSrno": "100010"
-        }, {
-            "valueName": "70",
-            "tabShrtNm": "",
-            "tabName": "超短期融资券",
-            "typeSrno": "100029"
-        }, {
-            "valueName": "80",
-            "tabShrtNm": "",
-            "tabName": "企业债",
-            "typeSrno": "100004"
-        }, {
-            "valueName": "90",
-            "tabShrtNm": "",
-            "tabName": "保险公司资本补充债",
-            "typeSrno": "100056"
-        }, {
-            "valueName": "110",
-            "tabShrtNm": "",
-            "tabName": "项目收益债券",
-            "typeSrno": "100057"
-        }, {
-            "valueName": "140",
-            "tabShrtNm": "",
-            "tabName": "资产支持票据",
-            "typeSrno": "100072"
-        }, {
-            "valueName": "150",
-            "tabShrtNm": "",
-            "tabName": "绿色债务融资工具",
-            "typeSrno": "100073"
-        }, {
-            "valueName": "180",
-            "tabShrtNm": "",
-            "tabName": "非公开定向债务融资工具",
-            "typeSrno": "100050"
-        }]
+        self.bond_type_list = [ # 同业存单数据量大概占了 80%
+            {
+                "valueName": "1",
+                "tabShrtNm": "",
+                "tabName": "同业存单",
+                "typeSrno": "100041"
+            },
+            {
+                "valueName": "3",
+                "tabShrtNm": "",
+                "tabName": "国债",
+                "typeSrno": "100001"
+            }, {
+                "valueName": "5",
+                "tabShrtNm": "",
+                "tabName": "地方政府债",
+                "typeSrno": "100011"
+            }, {
+                "valueName": "15",
+                "tabShrtNm": "",
+                "tabName": "政策性金融债",
+                "typeSrno": "100003"
+            }, {
+                "valueName": "17",
+                "tabShrtNm": "",
+                "tabName": "二级资本工具",
+                "typeSrno": "100054,100005"
+            }, {
+                "valueName": "50",
+                "tabShrtNm": "",
+                "tabName": "普通金融债",
+                "typeSrno": "100007"
+            }, {
+                "valueName": "52",
+                "tabShrtNm": "",
+                "tabName": "证券公司短期融资券",
+                "typeSrno": "100024"
+            }, {
+                "valueName": "60",
+                "tabShrtNm": "",
+                "tabName": "资产支持证券",
+                "typeSrno": "999999"
+            }, {
+                "valueName": "63",
+                "tabShrtNm": "",
+                "tabName": "政府支持机构债券",
+                "typeSrno": "100027"
+            }, {
+                "valueName": "64",
+                "tabShrtNm": "",
+                "tabName": "短期融资券",
+                "typeSrno": "100006"
+            }, {
+                "valueName": "65",
+                "tabShrtNm": "",
+                "tabName": "中期票据",
+                "typeSrno": "100010"
+            }, {
+                "valueName": "70",
+                "tabShrtNm": "",
+                "tabName": "超短期融资券",
+                "typeSrno": "100029"
+            }, {
+                "valueName": "80",
+                "tabShrtNm": "",
+                "tabName": "企业债",
+                "typeSrno": "100004"
+            }, {
+                "valueName": "90",
+                "tabShrtNm": "",
+                "tabName": "保险公司资本补充债",
+                "typeSrno": "100056"
+            }, {
+                "valueName": "110",
+                "tabShrtNm": "",
+                "tabName": "项目收益债券",
+                "typeSrno": "100057"
+            }, {
+                "valueName": "140",
+                "tabShrtNm": "",
+                "tabName": "资产支持票据",
+                "typeSrno": "100072"
+            }, {
+                "valueName": "150",
+                "tabShrtNm": "",
+                "tabName": "绿色债务融资工具",
+                "typeSrno": "100073"
+            }, {
+                "valueName": "180",
+                "tabShrtNm": "",
+                "tabName": "非公开定向债务融资工具",
+                "typeSrno": "100050"
+            }
+        ]
 
     def load_bond(self, bond_no, start, end, page_no=1, page_size=30):
         url = 'http://www.chinamoney.com.cn/ags/ms/cm-u-notice-issue/clinrAnNotice'
@@ -240,33 +243,4 @@ class BondDataJob:
 
 
 if __name__ == '__main__':
-    bond_list = []
-
     BondDataJob().sync_data()
-    # data_list = temp_document.find({})
-    # for record in data_list:
-    #     if str.strip(record['detail'][3][0]) == '发行人':
-    #         bond_list.append({
-    #             "contentId": record['contentId'],
-    #             "title": record['title'],
-    #             "draftPath": record['draftPath'],
-    #             'publisher': str.strip(record['detail'][3][1])
-    #         })
-    #     else:
-    #         print('miss')
-    #
-    # print(bond_list)
-    # base_document = client.stock.base
-    # stock_map = {}
-    # for stock in list(base_document.find({}, { 'symbol': 1, "code": 1, "company.org_name_cn": 1 })):
-    #     company_name = stock['company']['org_name_cn']
-    #     if company_name is not None:
-    #         company_name = str.strip(company_name)
-    #     stock_map[company_name] = stock['symbol']
-    #
-    # print('---')
-    #
-    # for bond in bond_list:
-    #     if bond['publisher'] in stock_map:
-    #         bond['code'] = stock_map[bond['publisher']]
-    #         print(bond)

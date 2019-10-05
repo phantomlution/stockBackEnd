@@ -6,6 +6,9 @@ time_format = '%Y-%m-%d'
 def getCurrent():
     return datetime.now()
 
+def get_current_date_str():
+    return getCurrent().strftime(time_format)
+
 
 def getTimestamp(dateObj):
     return int(dateObj.timestamp() * 1000)
@@ -24,6 +27,7 @@ def getDaysFrom2000(date1):
 
     delta = date1 - d0
     return delta.days
+
 
 # 按照天数的长度，将日期拆分成多个子区间
 def get_split_range(start, end, duration):
