@@ -42,8 +42,6 @@ def detail():
     params = request.get_json()
     return success(getStockDetail(params))
 
-history_cache = {}
-
 def getStockDetail(params):
     # 最后一天的数据不准确
     return mongo.stock.history.find_one(params, {"_id": 0})
@@ -168,8 +166,11 @@ def get_estate_data():
 
     return success(list(estate_document.find({ "date": date }, { "_id": 0 })))
 
+@app.route('/financial/huitong/index')
+def get_huitong_index_list():
+    huitong_document = mongo.stock.huitong
 
-
+    return success(list(huitong_document.find({}, { "_id": 0 })))
 
 @app.route('/redirect', methods=['GET'])
 def redirect():

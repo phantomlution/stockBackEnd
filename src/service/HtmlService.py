@@ -12,14 +12,14 @@ def extract_jsonp(response, jsonp):
     return json.loads(content)
 
 def get_response(url, headers=None, params=None):
-    default_headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36'
+    request_headers = {
+        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36'
     }
     if headers is not None:
         for header in headers:
-            default_headers[header] = headers[header]
+            request_headers[header] = headers[header]
 
-    return requests.get(url, headers=headers, params=params).content.decode()
+    return requests.get(url, headers=request_headers, params=params).content.decode()
 
 # 爬取页面后，将页面中相对路径全部转换成为绝对路径
 def get_parsed_href_html(url):
