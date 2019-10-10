@@ -36,7 +36,3 @@ class BondService:
                 })
 
         return result
-
-
-if __name__ == '__main__':
-    print(BondService.get_stock_bond_list())

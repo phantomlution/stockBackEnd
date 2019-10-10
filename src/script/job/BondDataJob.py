@@ -23,18 +23,19 @@ class BondDataJob:
         self.sync_table_key = 'bond_data'
         # 债券类型列表
         self.bond_type_list = [ # 同业存单数据量大概占了 80%
+            # {
+            #     "valueName": "1",
+            #     "tabShrtNm": "",
+            #     "tabName": "同业存单",
+            #     "typeSrno": "100041"
+            # },
+            # {
+            #     "valueName": "3",
+            #     "tabShrtNm": "",
+            #     "tabName": "国债",
+            #     "typeSrno": "100001"
+            # },
             {
-                "valueName": "1",
-                "tabShrtNm": "",
-                "tabName": "同业存单",
-                "typeSrno": "100041"
-            },
-            {
-                "valueName": "3",
-                "tabShrtNm": "",
-                "tabName": "国债",
-                "typeSrno": "100001"
-            }, {
                 "valueName": "5",
                 "tabShrtNm": "",
                 "tabName": "地方政府债",

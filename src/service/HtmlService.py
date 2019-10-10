@@ -5,13 +5,15 @@ import requests
 from bs4 import BeautifulSoup
 from urllib import parse
 import json
+import re
 
 
 def extract_jsonp(response, jsonp):
     content = str(response)[len(jsonp) + 1:-1]
     return json.loads(content)
 
-def get_response(url, headers=None, params=None):
+
+def get_response(url, headers=None, params=None, encoding='utf-8'):
     request_headers = {
         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36'
     }
@@ -19,7 +21,19 @@ def get_response(url, headers=None, params=None):
         for header in headers:
             request_headers[header] = headers[header]
 
-    return requests.get(url, headers=request_headers, params=params).content.decode()
+    response = requests.get(url, headers=request_headers, params=params)
+
+    content_type = response.headers['content-type'].split(';')
+    for content_type in content_type:
+        content_type_str = str.strip(content_type).lower()
+        if 'charset' in content_type_str:
+            encoding = content_type_str.split('=')[-1]
+            break
+    if len(encoding) > 0:
+        return response.content.decode(encoding)
+    else:
+        return response.content.decode()
+
 
 # 爬取页面后，将页面中相对路径全部转换成为绝对路径
 def get_parsed_href_html(url):
@@ -36,3 +50,14 @@ def get_parsed_href_html(url):
         href_element['href'] = parse.urljoin(url, href_element['href'])
 
     return str(html)
+
+
+# 抓取html中的变量
+def get_html_variable(raw_html, name):
+    pattern = re.compile('[(var)(let)(const)]\s*' + name + '\s*=\s*(.*?);')
+    find_result = pattern.findall(raw_html)
+
+    if len(find_result) == 1:
+        return json.loads(find_result[0])
+    else:
+        return None

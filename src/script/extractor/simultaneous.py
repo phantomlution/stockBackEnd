@@ -90,6 +90,40 @@ def load_american_treasury_securities():
         country_data = re.sub(r'\s{2,}', '  ', body_item).split('  ')
         sheet.append(country_data)
 
-    print(sheet)
+    return sheet
 
-load_american_treasury_securities()
+
+# 加载土地拍卖数据
+def load_land_auction():
+    url = 'https://fdc.fang.com/data/ajax/land/PicStat.aspx'
+
+    params = {
+        "DataType": 2,
+        "LandType": "",
+        "Locus": "-1",
+        "Time": "m",
+        "BeginTime": "2019.09",
+        "EndTime": "2019.09"
+    }
+
+    headers = {
+        "x-requested-with": "XMLHttpRequest"
+    }
+    response = get_response(url, params=params, headers=headers)
+    print(response)
+
+
+# 加载中国进出口数据
+def load_foreign_trade():
+    url = 'http://tjxh.mofcom.gov.cn/article/n/201908/20190802890159.shtml'
+    raw_html = get_response(url)
+    html = BeautifulSoup(raw_html, 'html.parser')
+    content_doc = html.select_one('#zoom table')
+    extractor = Extractor(content_doc)
+    extractor.parse()
+    return_list = extractor.return_list()
+    print(return_list)
+
+
+
+load_foreign_trade()

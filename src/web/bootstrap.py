@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 from src.service.StockService import StockService
 from src.service.BondService import BondService
 from src.script.job.StockTradeDataJob import StockTradeDataJob
-from src.script.job.StockNoticeJob import StockNoticeJob
 from src.assets.DataProvider import DataProvider
 from src.service.DataService import DataService
 from flask_socketio import SocketIO, emit
@@ -23,8 +22,6 @@ socketio = SocketIO(app, threaded=True)
 calculateBiKiller = getattr(StockTradeDataJob(), 'load_stock_data')
 # TODO
 getTotalStockList = getattr(DataProvider(), 'get_stock_list')
-# TODO
-loadStockNotice = getattr(StockNoticeJob(), 'load_stock_notice')
 
 def success(data = {}):
     return jsonify({
@@ -60,9 +57,11 @@ def base():
 
 @app.route('/stock/list')
 def stockList():
+    base_list = list(mongo.stock.base.find({ "type": 11 }, {"_id": 0}))
+
     return success({
         # "idList": list(mongo.stock.base.find({ "type": 11, "status": 1 }, { "_id": 0 })),
-        "idList": list(mongo.stock.base.find({ "type": 11 }, {"_id": 0})),
+        "idList": base_list,
         "nameList": getTotalStockList()
     })
 
@@ -79,33 +78,30 @@ def hotMoney():
 @app.route('/stock/notice')
 def getNotice():
     code = request.args.get('code')
-    response = loadStockNotice(code)
+    response = StockService.load_stock_notice(code)
     return success(response)
 
 @app.route('/stock/pool', methods=['GET'])
 def getStockPool():
-    return success(mongo.stock.sense.find_one({ "code": 'pool' }, { "_id": 0 }))
+    return success(StockService.get_stock_pool())
 
-@app.route('/stock/pool', methods=['PUT'])
-def updateStockPool():
+@app.route('/stock/pool', methods=['POST'])
+def addToStockPool():
     item = request.get_json()
-    model = {
-        "code": "pool",
-        "list": item
-    }
-    mongo.stock.sense.update({"code": "pool"}, model, True)
+    StockService.add_stock_pool(item)
     return success()
 
-@app.route('/stock/notice/search', methods=['GET'])
-def getStockNoticeSearch():
-    keyword = request.args.get('keyword')
-    result = mongo.stock.notice.find({ "data.NOTICETITLE": { '$regex': r'' + keyword } }, { '_id': 0 })
-    return success(list(result))
+@app.route('/stock/pool', methods=['DELETE'])
+def removeFromStockPool():
+    code = request.args.get('code')
+    return success(StockService.remove_stock_pool(code))
+
 
 @app.route('/stock/theme', methods=['GET'])
 def getStockThemeList():
     result = mongo.stock.theme.find({}, { "_id": 0 })
     return success(list(result))
+
 
 def socketSuccess(data):
     return json.dumps({
@@ -113,10 +109,12 @@ def socketSuccess(data):
         "data": data
     }, default=json_util.default)
 
+
 @app.route('/product/farm', methods=['GET'])
 def searchFarmProductIndex():
     goodsId = request.args.get('goodsId')
     return success(DataService.get_farm_product_index(goodsId))
+
 
 @app.route('/financial/information', methods=['GET'])
 def getFinancialInformation():
@@ -128,10 +126,11 @@ def getFinancialInformation():
         "data": data
     })
 
+
 @app.route('/financial/centralBank', methods=['GET'])
 def getCentralBankFinancialInfo():
-
     return success(extractAllCentualBank())
+
 
 @app.route('/financial/product', methods=['GET'])
 def get_financial_product():
@@ -139,15 +138,13 @@ def get_financial_product():
     result = mongo.stock.temp.find_one({ "key": key })
     return success(list(result['list']))
 
+
 @app.route('/financial/shibor', methods=['GET'])
 def get_financial_shibor():
     start = request.args.get('start')
     end = request.args.get('end')
     return success(DataService.get_shibor_data(start, end))
 
-@app.route('/financial/bond/list', methods=['GET'])
-def get_bond_list():
-    return success(BondService.get_stock_bond_list())
 
 @app.route('/financial/estate/date/list', methods=['GET'])
 def get_estate_date_list():
@@ -158,6 +155,7 @@ def get_estate_date_list():
         result.append( date['key'].split('_')[1])
 
     return success(result)
+
 
 @app.route('/financial/estate', methods=['GET'])
 def get_estate_data():
