@@ -39,6 +39,10 @@ class StockBaseDataJob:
         return response['data']['company']
 
     async def asynchronize_load_stock_base(self, task_id, code):
+        old_item = base_document.find_one({"symbol": code })
+        if old_item is not None and 'company' in old_item and old_item['company'] is not None:
+            return self.job.success(task_id)
+
         time.sleep(0.5)
         try:
             item = self.load_stock_base(code).get('data').get('quote')
@@ -56,7 +60,6 @@ class StockBaseDataJob:
         self.job.start(self.start, end_func)
 
     def start(self):
-        base_document.drop()
         self.cookies = Auth.get_snow_ball_auth()
         loop = asyncio.get_event_loop()
         for task in self.job.task_list:

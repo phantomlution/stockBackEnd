@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from src.service.StockService import StockService
-from src.service.BondService import BondService
 from src.script.job.StockTradeDataJob import StockTradeDataJob
 from src.assets.DataProvider import DataProvider
 from src.service.DataService import DataService
@@ -50,10 +49,10 @@ def getMarketIndex():
     count = request.args.get('count')
     return success(calculateBiKiller(code, count))
 
-@app.route('/stock/base', methods=['POST'])
+@app.route('/stock/base', methods=['GET'])
 def base():
-    params = request.get_json()
-    return success(mongo.stock.base.find_one(params, { "_id": 0 }))
+    code = request.args.get('code')
+    return success(mongo.stock.base.find_one({ "symbol": code }, { "_id": 0 }))
 
 @app.route('/stock/list')
 def stockList():
@@ -70,10 +69,26 @@ def capitalFlow():
     date = request.args.get('date')
     return success(mongo.stock.capitalFlow.find_one({ "date": date }, { "_id": 0 }))
 
+
 @app.route('/stock/capital/hotMoney')
 def hotMoney():
     date = request.args.get('date')
     return success(mongo.stock.hotMoney.find_one({ "date": date }, { "_id": 0 }))
+
+
+# 获取预披露的公告信息
+@app.route('/stock/pool/prerelease/calendar', methods=['GET'])
+def get_stock_pool_pre_release_calendar():
+    stock_list = mongo.stock.stock_pool.find()
+    result = []
+    for stock in stock_list:
+        result.append({
+            "code": stock['code'],
+            "name": stock['name'],
+            "list": StockService.load_pre_release_notice(stock['code'])
+        })
+
+    return success(result)
 
 @app.route('/stock/notice')
 def getNotice():
@@ -81,15 +96,23 @@ def getNotice():
     response = StockService.load_stock_notice(code)
     return success(response)
 
+@app.route('/stock/notice/change')
+def get_stock_notice_change():
+    code = request.args.get('code')
+    return success(StockService.get_stock_notice_change(code))
+
+
 @app.route('/stock/pool', methods=['GET'])
 def getStockPool():
     return success(StockService.get_stock_pool())
+
 
 @app.route('/stock/pool', methods=['POST'])
 def addToStockPool():
     item = request.get_json()
     StockService.add_stock_pool(item)
     return success()
+
 
 @app.route('/stock/pool', methods=['DELETE'])
 def removeFromStockPool():
@@ -102,6 +125,10 @@ def getStockThemeList():
     result = mongo.stock.theme.find({}, { "_id": 0 })
     return success(list(result))
 
+@app.route('/stock/detail/pledge')
+def get_stock_pledge():
+    code = request.args.get('code')
+    return success(StockService.get_pledge_rate(code))
 
 def socketSuccess(data):
     return json.dumps({

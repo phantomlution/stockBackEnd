@@ -5,60 +5,94 @@ from src.script.job.Job import Job
 from src.utils.sessions import FuturesSession
 import json
 from src.service.StockService import StockService
-from src.assets.DataProvider import DataProvider
 import time
-import asyncio
+from src.utils.date import time_format, get_split_range
+import datetime
 
 client = StockService.getMongoInstance()
 notice_document = client.stock.notice
+sync_document = client.stock.sync
 session = FuturesSession(max_workers=1)
 
 
 class StockNoticeJob:
     def __init__(self):
-        stock_list = DataProvider().get_stock_list()
+        self.sync_table_key = 'stock_notice_data'
+        self.sync_duration = 1
         self.job = Job(name='股票公告')
-        for stock in stock_list:
-            self.job.add(stock)
 
-    def load_stock_notice(self, code):
+    def load_stock_notice(self, date, page_no=1, page_size=50):
         url = "http://data.eastmoney.com/notices/getdata.ashx"
         params = {
-            "StockCode": code,
+            "StockCode": "",
+            "FirstNodeType": 0,
             "CodeType": 1,
-            "PageIndex": 1,
-            "PageSize": 50,
-            "jsObj": "dHBlUEvg",
+            "PageIndex": page_no,
+            "PageSize": page_size,
+            "jsObj": "NOkxwCpC",
             "SecNodeType": 0,
-            "FirstNodeType": 0
+            "Time": date,
+            "rt": 52356927
         }
         content = session.get(url, params=params).result().content.decode('gbk')
-        content_json = str.strip(content[content.find('=') + 1:-1])
+        content_json_str = str.strip(content[content.find('=') + 1:-1])
+        content_json = json.loads(content_json_str)
         return content_json
 
-    async def asynchronize_load_stock_notice(self, task_id, code):
+    def load_full_page_notice(self, date):
+        result = []
+        first_page = self.load_stock_notice(date)
+        total_page = first_page['pages']
+        for page in range(total_page):
+            current_page = self.load_stock_notice(date, page + 1)
+            for item in current_page['data']:
+                model = StockService.parse_stock_notice_item(item)
+                if model is None:
+                    continue
+
+                result.append(model)
+
+        return result
+
+    def synchronize_load_stock_notice(self, task_id, split_range):
+        if split_range['start'] != split_range['end']:
+            raise Exception('最多只允许一天的数据')
         time.sleep(0.3)
-        try:
-            item = self.load_stock_notice(code)
-            if item is not None:
-                item = json.loads(item)
-                if len(item['data']) > 0:
-                    item['code'] = code
-                    notice_document.update({"code": item.get('code')}, item, True)
-                self.job.success(task_id)
-            else:
-                raise Exception('找不到[{code}]的公告'.format(code=code))
-        except Exception as e:
-            self.job.fail(task_id, e)
+
+        date = split_range['start']
+        item_list = self.load_full_page_notice(date)
+        for item in item_list:
+            notice_document.update({ "notice_id": item['notice_id'] }, item, True)
+        model = {
+            "key": self.sync_table_key,
+            "last_update": date
+        }
+        sync_document.update({ "key": self.sync_table_key }, model, True)
+        self.job.success(task_id)
 
     def run(self, end_func=None):
+        self.init_task()
         self.job.start(self.start, end_func)
 
+    def init_task(self):
+        sync_model = sync_document.find_one({"key": self.sync_table_key})
+        if sync_model is None:
+            last_update = '2019-08-01'
+        else:
+            last_update = sync_model['last_update']
+
+        # 开始同步数据
+        current = datetime.datetime.now().strftime(time_format)
+        split_range_list = get_split_range(last_update, current, self.sync_duration)
+        for split_range in split_range_list:
+            self.job.add(split_range)
+
     def start(self):
-        notice_document.drop()
-        loop = asyncio.get_event_loop()
         for task in self.job.task_list:
-            stock = task['raw']
             task_id = task["id"]
-            code = stock.get('code')[2:]
-            loop.run_until_complete(self.asynchronize_load_stock_notice(task_id, code))
+            split_range = task['raw']
+            self.synchronize_load_stock_notice(task_id, split_range)
+
+
+if __name__ == '__main__':
+    StockNoticeJob().run()

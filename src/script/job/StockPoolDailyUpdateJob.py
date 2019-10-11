@@ -4,14 +4,10 @@
         1. 预发布公告
 '''
 from src.script.job.Job import Job
-from src.utils.sessions import FuturesSession
 from src.service.StockService import StockService
 import asyncio
 
 client = StockService.getMongoInstance()
-bond_notice_document = client.stock.bond_notice
-base_document = client.stock.base
-session = FuturesSession(max_workers=1)
 
 
 class StockPoolDailyUpdateJob:
@@ -41,7 +37,3 @@ class StockPoolDailyUpdateJob:
             task_id = task["id"]
             code = stock.get('value')
             loop.run_until_complete(self.asynchronize_update_stock_daily(task_id, code))
-
-
-if __name__ == '__main__':
-    StockPoolDailyUpdateJob().run()
