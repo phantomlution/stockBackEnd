@@ -49,7 +49,7 @@ class StockBaseDataJob:
             if item is not None:
                 item["company"] = self.load_stock_company_introduction(code)
 
-                base_document.update({"code": item.get('symbol')}, item, True)
+                base_document.update({"symbol": item.get('symbol')}, item, True)
                 self.job.success(task_id)
             else:
                 raise Exception('找不到[{code}]的基本信息'.format(code=code))

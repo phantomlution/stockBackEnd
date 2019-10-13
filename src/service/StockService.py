@@ -44,7 +44,9 @@ class StockService(object):
                     "title": release['sjlx'] + '_' + release['sjms'],
                     "date": release['rq'].split('T')[0],
                     "type": release['sjlx'],
-                    "important": True
+                    "important": True,
+                    "stock_name": base_model['name'],
+                    "stock_code": code
                 })
 
         return result
