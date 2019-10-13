@@ -23,10 +23,10 @@ if __name__ == '__main__':
         # 'MarketCapitalDataJob',
         # "BondDataJob", # 更新债券信息数据源
         # "BondRiskDataJob", # 更新债券重大事项数据源
-        'StockNoticeJob',
-        "StockBondNoticeUpdateJob", #  将债券发行数据和债券风险项同步到 基础信息中
+        # 'StockNoticeJob',
+        # "StockBondNoticeUpdateJob", #  将债券发行数据和债券风险项同步到 基础信息中
         "StockPoolDailyUpdateJob",  # 同步股票的重大事项
-        # 'StockTradeDataJob',
+        'StockTradeDataJob',
 
     ]
 

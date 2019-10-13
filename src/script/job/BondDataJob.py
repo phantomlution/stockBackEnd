@@ -204,6 +204,9 @@ class BondDataJob:
                         'pay_interest_duration': self.assert_field_name(raw_data, '付息频率'),
                         'issue_start': self.assert_field_name(raw_data, '上市流通日'),
                         'issue_end': self.assert_field_name(raw_data, '交易流通终止日'),
+                        'ticket_interest_rate': self.assert_field_name(raw_data, '票面利率/浮动债首次票面利率', default=''),
+                        'credit_rating': self.assert_field_name(raw_data, '债项/主体评级一', default=''),
+                        'credit_rating_company': self.assert_field_name(raw_data, '信用评级机构一', default=''),
                         'start_interest_date': self.assert_field_name(raw_data, '起息日', default=''),
                         'pay_back_date': self.assert_field_name(raw_data, '兑付日', default='')
                     }
@@ -255,3 +258,7 @@ class BondDataJob:
                 self.job.success(task_id)
             except Exception as e:
                 self.job.fail(task_id, e)
+
+
+if __name__ == '__main__':
+    BondDataJob().run()

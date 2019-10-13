@@ -12,8 +12,7 @@ client = StockService.getMongoInstance()
 
 class StockPoolDailyUpdateJob:
     def __init__(self):
-        stock_pool = client.stock.sense.find_one({ "code": "pool" })
-        stock_pool_list = stock_pool['list']
+        stock_pool_list = client.stock.stock_pool.find()
         stock_list = stock_pool_list
         self.job = Job(name='已选股票每日更新')
         for stock in stock_list:
@@ -35,5 +34,5 @@ class StockPoolDailyUpdateJob:
         for task in self.job.task_list:
             stock = task['raw']
             task_id = task["id"]
-            code = stock.get('value')
+            code = stock.get('code')
             loop.run_until_complete(self.asynchronize_update_stock_daily(task_id, code))

@@ -125,6 +125,11 @@ def getStockThemeList():
     result = mongo.stock.theme.find({}, { "_id": 0 })
     return success(list(result))
 
+@app.route('/stock/theme/market', methods=['GET'])
+def get_stock_theme_market():
+    theme_market_list = mongo.stock.theme_market.find({}, { "_id": 0 })
+    return success(list(theme_market_list))
+
 @app.route('/stock/detail/pledge')
 def get_stock_pledge():
     code = request.args.get('code')
