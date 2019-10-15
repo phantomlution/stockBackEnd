@@ -11,12 +11,14 @@ from src.script.job.BondDataJob import BondDataJob
 from src.script.job.BondRiskDataJob import BondRiskDataJob
 from src.script.job.StockBondNoticeUpdateJob import StockBondNoticeUpdateJob
 from src.script.job.StockPoolDailyUpdateJob import StockPoolDailyUpdateJob
+from src.script.job.StockSubCompanyUpdateJob import StockSubCompanyUpdateJob
 from src.script.job.JobScheduler import JobScheduler
 
 
 def get_init_routine():
     return [
         'StockBaseDataJob', # 数据库初始化时需要调用
+        # "StockSubCompanyUpdateJob", # 关联子公司，太容易被封了
     ]
 
 

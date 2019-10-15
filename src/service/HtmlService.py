@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from urllib import parse
 import json
 import re
+from src.utils.extractor import Extractor
 
 
 def extract_jsonp(response, jsonp):
@@ -61,3 +62,12 @@ def get_html_variable(raw_html, name):
         return json.loads(find_result[0])
     else:
         return None
+
+
+# 提取表格数据
+def extract_table(content_doc):
+    extractor = Extractor(content_doc)
+    extractor.parse()
+    return_list = extractor.return_list()
+
+    return return_list

@@ -6,7 +6,7 @@ from src.utils.sessions import FuturesSession
 import json
 from src.service.StockService import StockService
 from src.assets.DataProvider import DataProvider
-from src.script.auth.Auth import Auth
+from src.service.AuthService import AuthService
 import time
 import asyncio
 
@@ -60,7 +60,7 @@ class StockBaseDataJob:
         self.job.start(self.start, end_func)
 
     def start(self):
-        self.cookies = Auth.get_snow_ball_auth()
+        self.cookies = AuthService.get_snow_ball_auth()
         loop = asyncio.get_event_loop()
         for task in self.job.task_list:
             stock = task['raw']
