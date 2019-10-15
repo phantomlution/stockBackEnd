@@ -14,20 +14,37 @@ from src.script.job.StockPoolDailyUpdateJob import StockPoolDailyUpdateJob
 from src.script.job.JobScheduler import JobScheduler
 
 
-if __name__ == '__main__':
+def get_init_routine():
+    return [
+        'StockBaseDataJob', # 数据库初始化时需要调用
+    ]
 
-    pending_task = [
-        # 'StockBaseDataJob', # 数据库初始化时需要调用
-        # 'StockThemeDataJob',
-        # 'StockThemeUpdateJob', # 更新主题相关信息
-        # 'MarketCapitalDataJob',
-        # "BondDataJob", # 更新债券信息数据源
-        # "BondRiskDataJob", # 更新债券重大事项数据源
-        # 'StockNoticeJob',
-        # "StockBondNoticeUpdateJob", #  将债券发行数据和债券风险项同步到 基础信息中
+
+def get_theme_routine():
+    return [
+        'StockThemeDataJob',
+        'StockThemeUpdateJob', # 更新主题相关信息
+    ]
+
+
+def get_daily_routine():
+    return [
+        'MarketCapitalDataJob',
+        "BondDataJob", # 更新债券信息数据源
+        "BondRiskDataJob", # 更新债券重大事项数据源
+        'StockNoticeJob',
+        "StockBondNoticeUpdateJob", #  将债券发行数据和债券风险项同步到 基础信息中
         "StockPoolDailyUpdateJob",  # 同步股票的重大事项
         'StockTradeDataJob',
-
     ]
+
+
+if __name__ == '__main__':
+
+    pending_task = []
+
+    # pending_task += get_init_routine()
+    # pending_task += get_theme_routine()
+    pending_task += get_daily_routine()
 
     JobScheduler(pending_task, locals()).start()
