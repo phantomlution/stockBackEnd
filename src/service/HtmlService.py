@@ -10,7 +10,7 @@ from src.utils.extractor import Extractor
 
 
 def extract_jsonp(response, jsonp):
-    content = str(response)[len(jsonp) + 1:-1]
+    content = str(response)[len(jsonp) + 1:str.rindex(response, ')')]
     return json.loads(content)
 
 

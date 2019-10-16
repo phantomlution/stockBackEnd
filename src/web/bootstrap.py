@@ -22,40 +22,47 @@ calculateBiKiller = getattr(StockTradeDataJob(), 'load_stock_data')
 # TODO
 getTotalStockList = getattr(DataProvider(), 'get_stock_list')
 
+
 def success(data = {}):
     return jsonify({
         "code": "200",
         "data": data
     })
 
+
 @app.route('/')
 def hello():
     name = request.args.get('name', 'World')
     return f'Hello, {name}'
 
+
 @app.route('/stock/detail', methods=['POST'])
 def detail():
     params = request.get_json()
-    return success(getStockDetail(params))
+    return success(get_stock_detail(params))
 
-def getStockDetail(params):
+
+def get_stock_detail(params):
     # 最后一天的数据不准确
     return mongo.stock.history.find_one(params, {"_id": 0})
 
+
 @app.route('/stock/index', methods=['GET'])
-def getMarketIndex():
+def get_market_index():
     # 获取开市时间列表
     code = request.args.get('code')
     count = request.args.get('count')
     return success(calculateBiKiller(code, count))
 
+
 @app.route('/stock/base', methods=['GET'])
-def base():
+def get_stock_base():
     code = request.args.get('code')
     return success(mongo.stock.base.find_one({ "symbol": code }, { "_id": 0 }))
 
+
 @app.route('/stock/list')
-def stockList():
+def get_stock_list():
     base_list = list(mongo.stock.base.find({ "type": 11 }, {"_id": 0}))
 
     return success({
@@ -64,8 +71,9 @@ def stockList():
         "nameList": getTotalStockList()
     })
 
+
 @app.route('/stock/capital/flow')
-def capitalFlow():
+def get_stock_capital_flow():
     date = request.args.get('date')
     return success(mongo.stock.capitalFlow.find_one({ "date": date }, { "_id": 0 }))
 
@@ -90,11 +98,13 @@ def get_stock_pool_pre_release_calendar():
 
     return success(result)
 
+
 @app.route('/stock/notice')
-def getNotice():
+def get_notice():
     code = request.args.get('code')
     response = StockService.load_stock_notice(code)
     return success(response)
+
 
 @app.route('/stock/notice/change')
 def get_stock_notice_change():
@@ -103,39 +113,48 @@ def get_stock_notice_change():
 
 
 @app.route('/stock/pool', methods=['GET'])
-def getStockPool():
+def get_stock_pool():
     return success(StockService.get_stock_pool())
 
 
 @app.route('/stock/pool', methods=['POST'])
-def addToStockPool():
+def add_to_stock_pool():
     item = request.get_json()
     StockService.add_stock_pool(item)
     return success()
 
 
 @app.route('/stock/pool', methods=['DELETE'])
-def removeFromStockPool():
+def remove_from_stock_pool():
     code = request.args.get('code')
     return success(StockService.remove_stock_pool(code))
 
 
 @app.route('/stock/theme', methods=['GET'])
-def getStockThemeList():
+def get_stock_theme_list():
     result = mongo.stock.theme.find({}, { "_id": 0 })
     return success(list(result))
+
 
 @app.route('/stock/theme/market', methods=['GET'])
 def get_stock_theme_market():
     theme_market_list = mongo.stock.theme_market.find({}, { "_id": 0 })
     return success(list(theme_market_list))
 
+
 @app.route('/stock/detail/pledge')
 def get_stock_pledge():
     code = request.args.get('code')
     return success(StockService.get_pledge_rate(code))
 
-def socketSuccess(data):
+
+@app.route('/stock/detail/biding')
+def get_stock_biding():
+    code = request.args.get('code')
+    return success(StockService.get_stock_biding(code))
+
+
+def socket_success(data):
     return json.dumps({
         "code": 200,
         "data": data
@@ -143,13 +162,13 @@ def socketSuccess(data):
 
 
 @app.route('/product/farm', methods=['GET'])
-def searchFarmProductIndex():
-    goodsId = request.args.get('goodsId')
-    return success(DataService.get_farm_product_index(goodsId))
+def search_farm_product_index():
+    goods_id = request.args.get('goodsId')
+    return success(DataService.get_farm_product_index(goods_id))
 
 
 @app.route('/financial/information', methods=['GET'])
-def getFinancialInformation():
+def get_financial_information():
     date = request.args.get('date')
     data = extractData(date)
 
@@ -160,7 +179,7 @@ def getFinancialInformation():
 
 
 @app.route('/financial/centralBank', methods=['GET'])
-def getCentralBankFinancialInfo():
+def get_central_bank_financial_info():
     return success(extractAllCentualBank())
 
 
@@ -196,11 +215,13 @@ def get_estate_data():
 
     return success(list(estate_document.find({ "date": date }, { "_id": 0 })))
 
+
 @app.route('/financial/huitong/index')
 def get_huitong_index_list():
     huitong_document = mongo.stock.huitong
 
     return success(list(huitong_document.find({}, { "_id": 0 })))
+
 
 @app.route('/redirect', methods=['GET'])
 def redirect():
@@ -215,7 +236,8 @@ def test_message(message):
     params = message['params']
     request_id = message['requestId']
     if key == 'stockDetail':
-        emit('response_' + request_id, socketSuccess(getStockDetail(params)))
+        emit('response_' + request_id, socket_success(get_stock_detail(params)))
+
 
 if __name__ == '__main__':
     # app.run(port=5001)

@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from src.service.HtmlService import  get_response, get_html_variable
+from src.service.HtmlService import get_response, get_html_variable, extract_jsonp
 import json
 
 mongo_instance = MongoClient('mongodb://localhost:27017')
@@ -193,8 +193,50 @@ class StockService(object):
     # 获取股票竞价信息
     @staticmethod
     def get_stock_biding(code):
-        url = 'http://quote.eastmoney.com/' + code + '.html'
 
-        pass
 
-# StockService().get_stock_biding('SZ000007')
+        def generate_biding_field_list(name_prefix, increment_base):
+            field_list = []
+            index_range = 5
+            for index in range(index_range):
+                base_index = 2 * index + 1
+                field_list.append({
+                    "name": name_prefix + str(index_range - index),
+                    "fields": ['f' + str(increment_base + base_index), 'f' + str(increment_base + base_index + 1)]
+                })
+            return field_list
+
+        total_field_list = []
+        sell_field_list = generate_biding_field_list('卖', 30)
+        buy_field_list = generate_biding_field_list('买', 10)
+        buy_field_list.reverse()
+
+        total_field_list += sell_field_list
+        total_field_list += buy_field_list
+
+        query_field_list = []
+        for field_item in total_field_list:
+            query_field_list += field_item['fields']
+
+        url = 'http://push2.eastmoney.com/api/qt/stock/get'
+
+        params = {
+            "invt": 2,
+            "fltt": 2,
+            "secid": ('1.' if code[:2] == 'SH' else '0.') + code[2:],
+            "fields": 'f43,f57,f58,f169,f170,f46,f44,f51,f168,f47,f164,f116,f60,f45,f52,f50,f48,f167,f117,f71,f161,f49,f530,f135,f136,f137,f138,f139,f141,f142,f144,f145,f147,f148,f140,f143,f146,f149,f55,f62,f162,f92,f173,f104,f105,f84,f85,f183,f184,f185,f186,f187,f188,f189,f190,f191,f192,f107,f111,f86,f177,f78,f110,f262,f263,f264,f267,f268,f250,f251,f252,f253,f254,f255,f256,f257,f258,f266,f269,f270,f271,f273,f274,f275,f127,f199,f128,f193,f196,f194,f195,f197,f80,f280,f281,f282,f284,f285,f286,f287',
+            "cb": 'jQuery183047570304481979697_1571231187157',
+            "_": "1571233484244"
+        }
+
+        raw_response = get_response(url, params=params)
+        response = extract_jsonp(raw_response, params['cb'])
+        data = response['data']
+
+        result = []
+        for field_item in total_field_list:
+            result.append([
+                field_item['name'], data[field_item['fields'][0]], data[field_item['fields'][1]]
+            ])
+
+        return result
