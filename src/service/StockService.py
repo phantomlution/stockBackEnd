@@ -189,3 +189,12 @@ class StockService(object):
                 result.append(parsed_model)
 
         return result
+
+    # 获取股票竞价信息
+    @staticmethod
+    def get_stock_biding(code):
+        url = 'http://quote.eastmoney.com/' + code + '.html'
+
+        pass
+
+# StockService().get_stock_biding('SZ000007')

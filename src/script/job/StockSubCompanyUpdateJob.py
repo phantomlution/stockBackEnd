@@ -9,12 +9,11 @@ from src.script.job.Job import Job
 from src.service.StockService import StockService
 import time
 import random
-from src.service.AuthService import AuthService
 
 client = StockService.getMongoInstance()
 base_document = client.stock.base
 
-search_base = 'http://www.qichacha.com'
+search_base = 'https://www.qichacha.com'
 
 
 class StockSubCompanyUpdateJob:
@@ -28,7 +27,7 @@ class StockSubCompanyUpdateJob:
             self.job.add(stock)
 
     def get_interval(self):
-        return random.random() * self.request_interval
+        return 3 + random.random() * self.request_interval
 
     def get_search_list_html(self, company_name):
         time.sleep(self.get_interval())
@@ -38,90 +37,138 @@ class StockSubCompanyUpdateJob:
         }
 
         headers = {
-            'cookie': self.cookie,
+            'Cookie': self.cookie,
             "Host": "www.qichacha.com",
-            "Referer": "http://www.qichacha.com/"
+            "Referer": "https://www.qichacha.com/"
         }
 
         response = get_response(url, headers=headers, params=params)
 
         return response
 
-    def get_company_url(self, company_name, code):
-        raw_html = self.get_search_list_html(company_name)
-        html = BeautifulSoup(raw_html, 'html.parser')
-        result_list = html.select('#search-result tr')
-        if len(result_list) == 0:
-            print('{},{}'.format(company_name, code))
-            raise Exception('未找到结果')
+    def get_stock_tag(self, code):
+        return code[2:] + '.' + code[:2]
 
-        first_item = result_list[0]
-
-        tag = first_item.select_one('.search-tags').text
-        stock_tag = code[2:] + '.' + code[:2]
-        if stock_tag not in tag:
-            print(tag)
-            raise Exception('公司不匹配')
-
-        href_item = first_item.select_one('a')
-        href = href_item['href']
-
-        company_url = search_base + href
-
-        return company_url
-
-    def get_company_detail(self, company_url):
-        time.sleep(self.get_interval())
+    def get_company_detail(self, company_url, code):
         headers = {
             "cookie": self.cookie,
             "Host": "www.qichacha.com"
         }
+        time.sleep(self.get_interval())
         raw_html = get_response(company_url, headers=headers)
         html = BeautifulSoup(raw_html, 'html.parser')
+
+        company_header = html.select_one('#company-top .content .row.tags').text
+        stock_tag = self.get_stock_tag(code)
+
+        if stock_tag not in company_header:
+            raise Exception('数据不匹配')
+
         company_table = html.select_one('#cgkgList table')
-        if company_table is None:
-            print(company_table)
-            raise Exception('找不到对应信息')
-        table_result = extract_table(company_table)
+        stock_holder_table = html.select_one('#gdList table')
 
-        header = table_result[0]
-        body = table_result[1:]
+        sub_company_list = []
+        if company_table is not None:
+            table_result = extract_table(company_table)
 
-        if header[1] != '企业名称' or header[2] != '参股关系' or header[3] != '参股比例' or header[-1] != '主营业务':
-            print(header)
-            raise Exception('列信息错位')
+            header = table_result[0]
 
-        result = []
-        for sub_company in body:
-            result.append({
-                "name": str.strip(sub_company[1]),
-                "relation": str.strip(sub_company[2]),
-                "stock_share": str.strip(sub_company[3]),
-                "main_business": str.strip(sub_company[-1])
-            })
+            if header[1] != '企业名称' or header[2] != '参股关系' or header[3] != '参股比例' or header[-1] != '主营业务':
+                print(header)
+                raise Exception('子公司，列信息错位')
 
-        return result
+            company_table_row_list = company_table.select('tr')
+            for row_index, row in enumerate(company_table_row_list):
+                if row_index == 0:
+                    continue
+
+                model = {
+                    "company_name": '',
+                    "company_href": '',
+                    'relation': '',
+                    'stock_share': '',
+                    'main_business': ''
+                }
+
+                for column_index, column in enumerate(row.select('td')):
+                    if column_index == 1:
+                        company_detail_html = column.select_one('.whead-text')
+                        company_href = company_detail_html.select_one('a')
+                        if company_href is not None:
+                            model['company_name'] = str.strip(company_href.text)
+                            model["company_href"] = company_href['href']
+                        else:
+                            model["company_name"] = str.strip(company_detail_html.text)
+                    elif column_index == 2:
+                        model["relation"] = str.strip(column.text.split('%')[0])
+                    elif column_index == 3:
+                        model['stock_share'] = str.strip(column.text)
+                    elif column_index == len(header) - 1:
+                        model['main_business'] = str.strip(column.text)
+
+                sub_company_list.append(model)
+
+        stock_holder_list = []
+        if stock_holder_table is not None:
+            stock_holder_table_row_list = stock_holder_table.select('tr')
+            stock_holder_table_result = extract_table(stock_holder_table)
+            stock_holder_table_header = stock_holder_table_result[0]
+            if stock_holder_table_header[1] != '股东名称' or stock_holder_table_header[4] != '持股比例':
+                print(stock_holder_table_header)
+                raise Exception('股东信息，列信息错位')
+            for row_index, row in enumerate(stock_holder_table_row_list):
+                if row_index == 0:
+                    continue
+
+                model = {
+                    "company_name": '',
+                    "company_href": '',
+                    'stock_percent': ''
+                }
+
+                for column_index, column in enumerate(row.select('td')):
+                    if column_index == 1:
+                        company_detail_html = column.select_one('.whead-text')
+                        company_href = company_detail_html.select_one('a')
+                        if company_href is not None:
+                            model['company_name'] = str.strip(company_href.text)
+                            model["company_href"] = company_href['href']
+                        else:
+                            model["company_name"] = str.strip(company_detail_html.text)
+                    elif column_index == 4:
+                        model["stock_percent"] = str.strip(column.text.split('%')[0])
+
+                stock_holder_list.append(model)
+
+        return {
+            "sub_company_list": sub_company_list,
+            "stock_holder_list": stock_holder_list
+        }
 
     def run(self, end_func=None):
         self.job.start(self.start, end_func)
 
     def start(self):
-        count = -1
         for task in self.job.task_list:
             task_id = task['id']
             stock = task['raw']
             code = stock['code']
             stock_base = base_document.find_one({ "symbol": code })
-            if 'sub_company_list' not in stock_base:
-                count += 1
-                # if count % 10 == 0:
-                #     self.cookie = AuthService.get_cookie_str(search_base)
+            if 'stock_holder_list' not in stock_base:
+                if 'qichacha_url' not in stock_base or stock_base['qichacha_url'] is None:
+                    raise Exception('请先同步企查查url: [qichachaUrl.py]')
 
-                company_name = stock_base['company']['org_name_cn']
-                company_url = self.get_company_url(company_name, code)
-                sub_company_list = self.get_company_detail(company_url)
+                company_url = stock_base['qichacha_url']
+                company_detail = self.get_company_detail(company_url, code)
+
+                sub_company_list = company_detail['sub_company_list']
+                stock_holder_list = company_detail['stock_holder_list']
 
                 base_document.update({'symbol': code}, {'$set': {'qichacha_url': company_url}}, True)
-                base_document.update({'symbol': code}, { '$set': {'sub_company_list': sub_company_list }}, True)
-
+                base_document.update({'symbol': code}, {'$set': {'sub_company_list': sub_company_list}}, True)
+                base_document.update({"symbol": code}, {'$set': {'stock_holder_list': stock_holder_list}}, True)
             self.job.success(task_id)
+
+
+if __name__ == '__main__':
+    StockSubCompanyUpdateJob().run()

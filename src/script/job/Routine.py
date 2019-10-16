@@ -18,7 +18,7 @@ from src.script.job.JobScheduler import JobScheduler
 def get_init_routine():
     return [
         'StockBaseDataJob', # 数据库初始化时需要调用
-        # "StockSubCompanyUpdateJob", # 关联子公司，太容易被封了
+        # "StockSubCompanyUpdateJob", # 关联子公司
     ]
 
 
