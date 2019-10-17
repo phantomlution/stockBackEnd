@@ -23,22 +23,12 @@ class StockBondNoticeUpdateJob:
             self.job.add(stock)
 
     async def asynchronize_update_stock_bond_notice(self, task_id, code):
-        stock_base = client.stock.base.find_one({ "symbol": code })
-        if stock_base is not None:
-            # 关联目前已有的所有子公司债券信息
-            company_name_list = [
-                stock_base['company']['org_name_cn']
-            ]
-            if 'sub_company_list' in stock_base:
-                for sub_company in stock_base['sub_company_list']:
-                    if len(sub_company['company_name']) > 0:
-                        company_name_list.append(sub_company['company_name'])
-
-            # 获取债券发行信息
-            bond_publish_list = list(client.stock.bond.find({"data.publish_company": {"$in": company_name_list }, "bond_type_name": {"$ne": "同业存单"}}, { "_id": 0 }))
-            # 查询对应的债券风险信息
-            bond_risk_list = list(client.stock.bond_risk.find({ "title": { "$in": company_name_list }}, { "_id": 0}))
-            base_document.update({ 'symbol': code }, { '$set': {'bond_risk_list': bond_risk_list, "bond_publish_list": bond_publish_list } }, True)
+        company_name_list = StockService.get_all_company(code)
+        # 获取债券发行信息
+        bond_publish_list = list(client.stock.bond.find({"data.publish_company": {"$in": company_name_list }, "bond_type_name": {"$ne": "同业存单"}}, { "_id": 0 }))
+        # 查询对应的债券风险信息
+        bond_risk_list = list(client.stock.bond_risk.find({ "title": { "$in": company_name_list }}, { "_id": 0}))
+        base_document.update({ 'symbol': code }, { '$set': {'bond_risk_list': bond_risk_list, "bond_publish_list": bond_publish_list } }, True)
         self.job.success(task_id)
 
     def run(self, end_func=None):

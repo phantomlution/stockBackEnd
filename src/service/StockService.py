@@ -240,3 +240,17 @@ class StockService(object):
             ])
 
         return result
+
+    # 获取公司的所有子公司
+    @staticmethod
+    def get_all_company(code):
+        stock_base = base_document.find_one({"symbol": code})
+        company_name_list = [
+            stock_base['company']['org_name_cn']
+        ]
+        if 'sub_company_list' in stock_base:
+            for sub_company in stock_base['sub_company_list']:
+                if len(sub_company['company_name']) > 0:
+                    company_name_list.append(sub_company['company_name'])
+
+        return company_name_list

@@ -159,6 +159,7 @@ class StockSubCompanyUpdateJob:
                     raise Exception('请先同步企查查url: [qichachaUrl.py]')
 
                 company_url = stock_base['qichacha_url']
+                print('current code: {}, url: {}'.format(stock_base['symbol'], company_url))
                 company_detail = self.get_company_detail(company_url, code)
 
                 sub_company_list = company_detail['sub_company_list']
