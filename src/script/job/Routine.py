@@ -17,7 +17,7 @@ from src.script.job.JobScheduler import JobScheduler
 
 def get_init_routine():
     return [
-        'StockBaseDataJob', # 数据库初始化时需要调用
+        'StockBaseDataJob',  # 数据库初始化时需要调用
         # "StockSubCompanyUpdateJob", # 关联子公司
     ]
 
@@ -25,19 +25,19 @@ def get_init_routine():
 def get_theme_routine():
     return [
         'StockThemeDataJob',
-        'StockThemeUpdateJob', # 更新主题相关信息
+        'StockThemeUpdateJob',  # 更新主题相关信息
     ]
 
 
 def get_daily_routine():
     return [
-        # 'MarketCapitalDataJob',
-        # "BondDataJob", # 更新债券信息数据源
-        # "BondRiskDataJob", # 更新债券重大事项数据源
-        # 'StockNoticeJob',
-        "StockBondNoticeUpdateJob", #  将债券发行数据和债券风险项同步到 基础信息中
-        # "StockPoolDailyUpdateJob",  # 同步股票的重大事项
-        # 'StockTradeDataJob',
+        'MarketCapitalDataJob',
+        "BondDataJob",  # 更新债券信息数据源
+        "BondRiskDataJob",  # 更新债券重大事项数据源
+        'StockNoticeJob',
+        "StockBondNoticeUpdateJob",  # 将债券发行数据和债券风险项同步到 基础信息中
+        "StockPoolDailyUpdateJob",  # 同步股票的重大事项
+        'StockTradeDataJob',
     ]
 
 

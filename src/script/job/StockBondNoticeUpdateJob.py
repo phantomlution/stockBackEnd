@@ -27,7 +27,7 @@ class StockBondNoticeUpdateJob:
         # 获取债券发行信息
         bond_publish_list = list(client.stock.bond.find({"data.publish_company": {"$in": company_name_list }, "bond_type_name": {"$ne": "同业存单"}}, { "_id": 0 }))
         # 查询对应的债券风险信息
-        bond_risk_list = list(client.stock.bond_risk.find({ "title": { "$in": company_name_list }}, { "_id": 0}))
+        bond_risk_list = list(client.stock.bond_risk.find({ "title": { "$regex": '|'.join(company_name_list) }}, { "_id": 0}))
         base_document.update({ 'symbol': code }, { '$set': {'bond_risk_list': bond_risk_list, "bond_publish_list": bond_publish_list } }, True)
         self.job.success(task_id)
 
