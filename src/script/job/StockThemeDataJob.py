@@ -61,3 +61,7 @@ class StockThemeDataJob:
             task_id = task["id"]
             code = stock.get('code')
             loop.run_until_complete(self.asynchronize_load_stock_theme(task_id, code))
+
+
+if __name__ == '__main__':
+    StockThemeDataJob().run()

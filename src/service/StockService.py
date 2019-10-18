@@ -7,6 +7,7 @@ mongo_instance = MongoClient('mongodb://localhost:27017')
 base_document = mongo_instance.stock.base
 notice_document = mongo_instance.stock.notice
 stock_pool_document = mongo_instance.stock.stock_pool
+chinese_central_bank_base = 'http://www.chinamoney.com.cn'
 
 
 class StockService(object):
@@ -59,9 +60,13 @@ class StockService(object):
         if 'bond_risk_list' in base_model:
             for risk in base_model['bond_risk_list']:
                 result.append({
+                    "stock_name": base_model['name'],
+                    "stock_code": code,
                     "title": risk['prefix'] + '_' + risk['title'],
                     "date": risk['releaseDate'],
                     "type": '债券风险提示',
+                    "filterType": '债券',
+                    "url": chinese_central_bank_base + risk['draftPath'],
                     "important": True
                 })
 
@@ -75,8 +80,12 @@ class StockService(object):
         if 'bond_publish_list' in base_model:
             for publish_bond in base_model['bond_publish_list']:
                 result.append({
-                    "title": publish_bond['data']['bond_type_name'] + '_' + publish_bond['data']['name'],
+                    "stock_name": base_model['name'],
+                    "stock_code": code,
+                    "title": publish_bond['bond_type_name'] + '_' + publish_bond['data']['name'],
                     "date": publish_bond['releaseDate'],
+                    "url": chinese_central_bank_base + publish_bond['draftPath'],
+                    "filterType": '债券',
                     "type": '债券发行',
                     "important": True
                 })
@@ -142,7 +151,8 @@ class StockService(object):
             'stock_code': prefix + item['CDSY_SECUCODES'][0]['SECURITYCODE'],
             "stock_name": item['CDSY_SECUCODES'][0]['SECURITYFULLNAME'],
             "market": market_name,
-            "type": item['ANN_RELCOLUMNS'][0]['COLUMNNAME']
+            "type": item['ANN_RELCOLUMNS'][0]['COLUMNNAME'],
+            "url": item['Url']
         }
 
         return model
@@ -164,36 +174,9 @@ class StockService(object):
         else:
             return pledge_list[0]['value']
 
-    # 获取股票增减持公告
-    @staticmethod
-    def get_stock_notice_change(code):
-        url = 'http://data.eastmoney.com/notices/getdata.ashx'
-        params = {
-            "StockCode": code[2:],
-            "CodeType": 1,
-            "PageIndex": 1,
-            "PageSize": 50,
-            "jsObj": "qnMihhKR",
-            "SecNodeType": 0,
-            "FirstNodeType": 7,
-            "rt": 52358670
-        }
-
-        raw_response = get_response(url, params=params)
-        raw_json_str = raw_response[raw_response.index('=') + 1 : raw_response.rindex('}') + 1]
-        response_json = json.loads(raw_json_str)
-        result = []
-        for item in response_json['data']:
-            parsed_model = StockService.parse_stock_notice_item(item)
-            if parsed_model is not None:
-                result.append(parsed_model)
-
-        return result
-
     # 获取股票竞价信息
     @staticmethod
     def get_stock_biding(code):
-
 
         def generate_biding_field_list(name_prefix, increment_base):
             field_list = []

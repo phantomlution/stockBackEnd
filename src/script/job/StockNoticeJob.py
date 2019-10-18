@@ -2,9 +2,9 @@
     获取所有公告（个股公告第一页数据）
 '''
 from src.script.job.Job import Job
-from src.utils.sessions import FuturesSession
 import json
 from src.service.StockService import StockService
+from src.service.HtmlService import get_response
 import time
 from src.utils.date import time_format, get_split_range
 import datetime
@@ -12,7 +12,6 @@ import datetime
 client = StockService.getMongoInstance()
 notice_document = client.stock.notice
 sync_document = client.stock.sync
-session = FuturesSession(max_workers=1)
 
 
 class StockNoticeJob:
@@ -34,7 +33,7 @@ class StockNoticeJob:
             "Time": date,
             "rt": 52356927
         }
-        content = session.get(url, params=params).result().content.decode('gbk')
+        content = get_response(url, params=params, encoding='gbk')
         content_json_str = str.strip(content[content.find('=') + 1:-1])
         content_json = json.loads(content_json_str)
         return content_json
