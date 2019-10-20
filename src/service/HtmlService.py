@@ -47,24 +47,35 @@ def get_parsed_href_html(url):
     # 转换相对路径为绝对路径
     src_element_list = html.find_all(src=True)
     for src_element in src_element_list:
-        src_element['src'] = parse.urljoin(url, src_element['src'])
+        src_element['src'] = get_absolute_url_path(url, src_element['src'])
 
     href_element_list = html.find_all(href=True)
     for href_element in href_element_list:
-        href_element['href'] = parse.urljoin(url, href_element['href'])
+        href_element['href'] = get_absolute_url_path(url, href_element['href'])
 
     return str(html)
 
 
 # 抓取html中的变量
-def get_html_variable(raw_html, name):
-    pattern = re.compile('[(var)(let)(const)]\s*' + name + '\s*=\s*(.*?);')
+def get_html_variable(raw_html, name, variable_define=True):
+    # variable_define 判断是否需要变量定义
+    prefix_str = '[^/]+'
+    define_str = '[(var)(let)(const)]'
+    search_pattern = '\s*' + name + '\s*=\s*(.*?);'
+    if variable_define:
+        pattern = re.compile(prefix_str + define_str + search_pattern)
+    else:
+        pattern = re.compile(prefix_str + search_pattern)
     find_result = pattern.findall(raw_html)
 
     if len(find_result) == 1:
         return json.loads(find_result[0])
     else:
         return None
+
+
+def get_absolute_url_path(target, relative_url):
+    return parse.urljoin(target, relative_url)
 
 
 # 提取表格数据
@@ -74,3 +85,4 @@ def extract_table(content_doc):
     return_list = extractor.return_list()
 
     return return_list
+
