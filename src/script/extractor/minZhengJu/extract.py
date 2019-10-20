@@ -135,21 +135,20 @@ def do_statistics(start, end, quarter_list, target_row, field_list):
         quarter_str = quarter_list[0] + '-' + quarter_list[-1]
 
     for year in range(start, end + 1):
-        year_item_list = min_zheng_ju_document.find({ "year": str(year), "quarter": { "$in": quarter_list } })
+        year_item_list = list(min_zheng_ju_document.find({ "year": str(year), "quarter": { "$in": quarter_list } }))
         model = {
             "title": str(year) + '年' + quarter_str + '季度',
         }
-        for field in field_list:
-            model[field] = [0, '']
 
-        for year_item in list(year_item_list):
-            year_item_data = year_item['data']
-            headers = year_item_data['headers']
-            rows = year_item_data['rows']
-            try:
-                for row in rows:
-                    if row[0] == target_row:
-                        for field in field_list:
+        try:
+            for field in field_list:
+                model[field] = [0, '']
+                for year_item in year_item_list:
+                    year_item_data = year_item['data']
+                    headers = year_item_data['headers']
+                    rows = year_item_data['rows']
+                    for row in rows:
+                        if row[0] == target_row:
                             if field in headers:
                                 index = headers.index(field)
                             else:
@@ -163,9 +162,9 @@ def do_statistics(start, end, quarter_list, target_row, field_list):
                                     raise Exception('单位不同步')
 
                             model[field][0] += int(row[index].replace(',', ''))
-                        break
-            except Exception as e:
-                pass
+                            break
+        except Exception as e:
+            pass
 
         print(model)
 
@@ -176,5 +175,5 @@ if __name__ == '__main__':
     # run() #  同步数据
 
     # do_statistics(start=2007, end=2018, target_row='全国合计', quarter_list=['1', '2', '3', '4'], field_list=['结婚登记', '离婚登记'])
-    do_statistics(start=2019, end=2019, target_row='全国合计', quarter_list=['1', '2', '3', '4'],
+    do_statistics(start=2007, end=2019, target_row='全国合计', quarter_list=['1', '2', '3', '4'],
                   field_list=['镇', '养老机构'])
