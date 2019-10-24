@@ -8,7 +8,7 @@ from bson import json_util
 from src.script.extractor.event import extractData
 from src.script.extractor.centualBank import extractAllCentualBank
 import json
-from src.service.HtmlService import get_parsed_href_html
+from src.service.HtmlService import get_parsed_href_html, get_response
 
 
 mongo = StockService.getMongoInstance()
@@ -215,6 +215,10 @@ def get_estate_data():
 
     return success(list(estate_document.find({ "date": date }, { "_id": 0 })))
 
+@app.route('/data/stat/country', methods=['GET'])
+def get_country_stat():
+    code = request.args.get('code')
+    return success(DataService.get_stat_info(code))
 
 @app.route('/financial/huitong/index')
 def get_huitong_index_list():
@@ -226,8 +230,13 @@ def get_huitong_index_list():
 @app.route('/redirect', methods=['GET'])
 def redirect():
     url = request.args.get('url')
+    response = get_response(url)
 
-    return get_parsed_href_html(url)
+    parsed_html = get_parsed_href_html(url, response)
+
+    # if 'cn.investing.com' in url:
+    #     parsed_html = parsed_html.replace('//sbcharts.investing.com', '/api/redirect?url=' + 'https://sbcharts.investing.com')
+    return parsed_html
 
 
 @socketio.on('request')

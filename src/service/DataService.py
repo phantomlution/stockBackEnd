@@ -2,6 +2,7 @@
     部分数据接口对接
 '''
 from src.utils.sessions import FuturesSession
+from src.service.HtmlService import get_response
 from src.utils import date
 import json
 
@@ -37,3 +38,43 @@ class DataService(object):
         }
 
         return json.loads(session.get(url, params=params).result().content.decode())
+
+    @staticmethod
+    def get_stat_info(code = 'A020F01'):
+        url = 'http://data.stats.gov.cn/easyquery.htm'
+        params = {
+            'm': 'QueryData',
+            'dbcode': 'hgyd',
+            'rowcode': 'zb',
+            'colcode': 'sj',
+            'wds': '[]',
+            'dfwds': '[{"wdcode": "zb", "valuecode": "' + code +'"}]'
+        }
+
+        response = json.loads(get_response(url, params=params))
+
+        data = response['returndata']
+
+        specification = data['wdnodes'][0]['nodes'][0]
+
+        result = {
+            "name": specification['cname'],
+            "memo": specification['memo'],
+            "unit": specification['unit'],
+            'list': []
+        }
+
+        for item in data['datanodes']:
+            # 数据强校验
+            if item['wds'][0]['valuecode'] == code:
+                date_str = item['code'].split('.')[-1]
+                value = item['data']['data']
+                result['list'].append({
+                    "date": date_str,
+                    "value": value
+                })
+
+        return result
+
+if __name__ == '__main__':
+    DataService().get_stat_info()

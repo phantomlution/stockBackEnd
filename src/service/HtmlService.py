@@ -27,21 +27,21 @@ def get_response(url, headers=None, params=None, encoding=None):
     if encoding is not None:
         return response.content.decode(encoding)
     else:
-        content_type = response.headers['content-type'].split(';')
-        for content_type in content_type:
-            content_type_str = str.strip(content_type).lower()
-            if 'charset' in content_type_str:
-                encoding = content_type_str.split('=')[-1]
-                break
-        if len(encoding) > 0:
+        if 'content-type' in response.headers:
+            content_type = response.headers['content-type'].split(';')
+            for content_type in content_type:
+                content_type_str = str.strip(content_type).lower()
+                if 'charset' in content_type_str:
+                    encoding = content_type_str.split('=')[-1]
+                    break
+        if encoding is not None and len(encoding) > 0:
             return response.content.decode(encoding)
         else:
             return response.content.decode('utf-8')
 
 
 # 爬取页面后，将页面中相对路径全部转换成为绝对路径
-def get_parsed_href_html(url):
-    response = get_response(url)
+def get_parsed_href_html(url, response):
     html = BeautifulSoup(response, 'html.parser')
 
     # 转换相对路径为绝对路径
