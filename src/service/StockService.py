@@ -215,10 +215,16 @@ class StockService(object):
         raw_response = get_response(url, params=params)
         response = extract_jsonp(raw_response, params['cb'])
         data = response['data']
-
-        result = []
+        result = {
+            "current": data['f43'],
+            "max": data['f44'],
+            'min': data['f45'],
+            "yesterday": data['f60'],
+            "volume": data['f47'],
+            "biding": []
+        }
         for field_item in total_field_list:
-            result.append([
+            result['biding'].append([
                 field_item['name'], data[field_item['fields'][0]], data[field_item['fields'][1]]
             ])
 
@@ -237,3 +243,8 @@ class StockService(object):
                     company_name_list.append(sub_company['company_name'])
 
         return company_name_list
+
+
+if __name__ == '__main__':
+    code = 'SZ002567'
+    StockService.get_stock_biding(code)
