@@ -244,7 +244,20 @@ class StockService(object):
 
         return company_name_list
 
+    # 获取所有的持股信息
+    @staticmethod
+    def get_all_stock_share_company(url):
+        stock_holder_list = base_document.find({ 'stock_holder_list.company_href': url }, { "name": 1, "symbol": 1})
+        result = []
+        for stock in stock_holder_list:
+            result.append({
+                "code": stock['symbol'],
+                "name": stock['name']
+            })
+        print(result)
+        return result
+
 
 if __name__ == '__main__':
     code = 'SZ002567'
-    StockService.get_stock_biding(code)
+    StockService.get_all_stock_share_company(code)

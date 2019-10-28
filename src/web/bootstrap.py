@@ -142,6 +142,12 @@ def get_stock_theme_market():
     return success(list(theme_market_list))
 
 
+# 查询某一个十大股东，目前能查到的所有持股信息
+@app.route('/stock/share/all', methods=['GET'])
+def get_all_company_stock_share():
+    url = request.args.get('url')
+    return success(StockService.get_all_stock_share_company(url))
+
 @app.route('/stock/detail/pledge')
 def get_stock_pledge():
     code = request.args.get('code')

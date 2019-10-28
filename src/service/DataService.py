@@ -76,5 +76,6 @@ class DataService(object):
 
         return result
 
+
 if __name__ == '__main__':
     DataService().get_stat_info()
