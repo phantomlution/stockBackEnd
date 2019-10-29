@@ -3,19 +3,25 @@ from datetime import date, datetime, timedelta
 
 time_format = '%Y-%m-%d'
 
+
 def getCurrent():
     return datetime.now()
+
 
 def get_current_date_str():
     return getCurrent().strftime(time_format)
 
 
-def getTimestamp(dateObj):
-    return int(dateObj.timestamp() * 1000)
+def date_str_to_timestamp(date_str, format_rule=time_format):
+    return date_obj_to_timestamp(datetime.strptime(date_str, format_rule))
+
+
+def date_obj_to_timestamp(date_obj):
+    return int(date_obj.timestamp() * 1000)
 
 
 def getCurrentTimestamp():
-    return getTimestamp(getCurrent())
+    return date_obj_to_timestamp(getCurrent())
 
 
 def format_timestamp(timestamp, format_rule=time_format):

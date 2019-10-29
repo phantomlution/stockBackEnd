@@ -30,6 +30,13 @@ def success(data = {}):
     })
 
 
+def fail(message, code='400'):
+    return jsonify({
+        "code": code,
+        "message": message
+    })
+
+
 @app.route('/')
 def hello():
     name = request.args.get('name', 'World')
@@ -117,6 +124,9 @@ def get_stock_pool():
 @app.route('/stock/pool', methods=['POST'])
 def add_to_stock_pool():
     item = request.get_json()
+    code = item['code']
+    if StockService.stock_pool_exist(code):
+        return fail('该代码已存在')
     StockService.add_stock_pool(item)
     return success()
 

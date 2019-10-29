@@ -12,12 +12,14 @@ from src.script.job.BondRiskDataJob import BondRiskDataJob
 from src.script.job.StockBondNoticeUpdateJob import StockBondNoticeUpdateJob
 from src.script.job.StockPoolDailyUpdateJob import StockPoolDailyUpdateJob
 from src.script.job.StockSubCompanyUpdateJob import StockSubCompanyUpdateJob
+from src.script.job.StockRestrictSellUpdateJob import StockRestrictSellUpdateJob
 from src.script.job.JobScheduler import JobScheduler
 
 
 def get_init_routine():
     return [
         'StockBaseDataJob',  # 数据库初始化时需要调用
+        # 'StockRestrictSellUpdateJob', # 关联所有相关限售股份
         # "StockSubCompanyUpdateJob", # 关联子公司
     ]
 

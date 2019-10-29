@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from src.service.HtmlService import get_response, get_html_variable, extract_jsonp
+from src.utils.date import date_str_to_timestamp
 import json
 
 mongo_instance = MongoClient('mongodb://localhost:27017')
@@ -8,7 +9,7 @@ base_document = mongo_instance.stock.base
 notice_document = mongo_instance.stock.notice
 stock_pool_document = mongo_instance.stock.stock_pool
 chinese_central_bank_base = 'http://www.chinamoney.com.cn'
-
+ten_thousand = 10000
 
 class StockService:
 
@@ -116,6 +117,10 @@ class StockService:
         StockService.update_stock_pre_release(code)
 
         stock_pool_document.update({ "code": code }, model, True)
+
+    @staticmethod
+    def stock_pool_exist(code):
+        return stock_pool_document.find_one({ "code": code }) is not None
 
     # 删除
     @staticmethod
@@ -262,7 +267,106 @@ class StockService:
             })
         return result
 
+    # 获取限售股票
+    @staticmethod
+    def get_restricted_sell_stock(code):
+        url = 'http://emweb.securities.eastmoney.com/CapitalStockStructure/CapitalStockStructureAjax'
+        params = {
+            "code": code
+        }
+
+        response = json.loads(get_response(url, params=params))
+
+        result = []
+
+        old_share_change_list = response['ShareChangeList']
+
+        if len(old_share_change_list) > 0:
+            field_index = {
+                "date": -1,
+                'total_flow': -1,
+                'desc': -1
+            }
+
+            for idx, item in enumerate(old_share_change_list):
+                if old_share_change_list[idx]['des'] == '单位:万股':
+                    field_index['date'] = idx
+                    continue
+                if old_share_change_list[idx]['des'] == '已上市流通A股':
+                    field_index['total_flow'] = idx
+                    continue
+                if old_share_change_list[idx]['des'] == '变动原因':
+                    field_index['desc'] = idx
+                    continue
+
+            # 进行数据强校验
+            if field_index['date'] == -1 or field_index['total_flow'] == -1 or field_index['desc'] == -1:
+                raise Exception('数据错误')
+
+            old_count = len(old_share_change_list[field_index['date']]['changeList'])
+
+            old_share_result = []
+
+            for old_index in range(old_count):
+                date = old_share_change_list[field_index['date']]['changeList'][old_index]
+                total_flow = old_share_change_list[field_index['total_flow']]['changeList'][old_index]
+                desc = old_share_change_list[field_index['desc']]['changeList'][old_index]
+                old_share_result.append({
+                    "date": date,
+                    "totalFlow": total_flow.replace('--', '0').replace(',', ''),
+                    "desc": desc
+                })
+
+            # 重构已经解禁了的数据
+            old_share_result.reverse()
+            for old_share_index, old_share in enumerate(old_share_result):
+                if old_share_index == 0:
+                    result.append({
+                        "date": old_share['date'],
+                        "increment": float(old_share["totalFlow"]) * ten_thousand,
+                        "desc": old_share['desc'],
+                        "timestamp": date_str_to_timestamp(old_share['date'])
+                    })
+                else:
+                    result.append({
+                        "date": old_share['date'],
+                        "increment": (float(old_share['totalFlow']) - float(old_share_result[old_share_index - 1]['totalFlow'])) * ten_thousand,
+                        "desc": old_share['desc'],
+                        "timestamp": date_str_to_timestamp(old_share['date'])
+                    })
+
+        # 追加待解禁的数据
+        wait_share_list = response['RptRestrictedBanList']
+        for item in wait_share_list:
+            if item['jjsj'] == result[-1]['date']:
+                continue
+            amount_str = item['jjsl']
+            if amount_str[-1] == '亿':
+                increment = float(amount_str[:-1]) * ten_thousand * ten_thousand
+            elif amount_str[-1] == '万':
+                increment = float(amount_str[:-1]) * ten_thousand
+            else:
+                increment = int(amount_str)
+            result.append({
+                "date": item['jjsj'],
+                'increment': increment,
+                "desc": item['gplx'],
+                "timestamp": date_str_to_timestamp(item['jjsj'])
+            })
+
+        # 最终顺序校验, 升序
+        for idx, item in enumerate(result):
+            if idx == 0:
+                continue
+            former = int(result[idx - 1]['date'].replace('-', ''))
+            current = int(result[idx]['date'].replace('-', ''))
+
+            if current < former:
+                raise Exception('序列错误')
+
+        return result
+
 
 if __name__ == '__main__':
-    code = 'SZ002567'
-    StockService.get_all_stock_share_company(code)
+    stock_code = 'sh603610'
+    StockService.get_restricted_sell_stock(stock_code)
