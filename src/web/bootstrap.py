@@ -36,10 +36,13 @@ def hello():
     return f'Hello, {name}'
 
 
-@app.route('/stock/detail', methods=['POST'])
+@app.route('/stock/detail', methods=['GET'])
 def detail():
-    params = request.get_json()
-    return success(get_stock_detail(params))
+    code = request.args.get('code')
+    return success({
+        "base": StockService.get_stock_base(code),
+        "data": get_stock_detail({ "code": code })
+    })
 
 
 def get_stock_detail(params):
@@ -63,13 +66,7 @@ def get_stock_base():
 
 @app.route('/stock/list')
 def get_stock_list():
-    base_list = list(mongo.stock.base.find({ "type": 11 }, {"_id": 0}))
-
-    return success({
-        # "idList": list(mongo.stock.base.find({ "type": 11, "status": 1 }, { "_id": 0 })),
-        "idList": base_list,
-        "nameList": getTotalStockList()
-    })
+    return success(DataProvider().get_stock_list())
 
 
 @app.route('/stock/capital/flow')

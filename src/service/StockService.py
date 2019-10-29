@@ -10,7 +10,7 @@ stock_pool_document = mongo_instance.stock.stock_pool
 chinese_central_bank_base = 'http://www.chinamoney.com.cn'
 
 
-class StockService(object):
+class StockService:
 
     @staticmethod
     def getMongoInstance():
@@ -52,11 +52,15 @@ class StockService(object):
 
         return result
 
+    @staticmethod
+    def get_stock_base(code):
+        return base_document.find_one({ "symbol": code }, { "_id": 0 })
+
     # 加载债券风险提示列表
     @staticmethod
     def load_bond_risk_notice(code):
         result = []
-        base_model = base_document.find_one({"symbol": code})
+        base_model = StockService.get_stock_base(code)
         if 'bond_risk_list' in base_model:
             for risk in base_model['bond_risk_list']:
                 result.append({
@@ -76,7 +80,7 @@ class StockService(object):
     @staticmethod
     def load_bond_publish_notice(code):
         result = []
-        base_model = base_document.find_one({"symbol": code})
+        base_model = StockService.get_stock_base(code)
         if 'bond_publish_list' in base_model:
             for publish_bond in base_model['bond_publish_list']:
                 result.append({
@@ -217,10 +221,12 @@ class StockService(object):
         data = response['data']
         result = {
             "current": data['f43'],
+            "open": data['f46'],
             "max": data['f44'],
             'min': data['f45'],
             "yesterday": data['f60'],
             "volume": data['f47'],
+            'turnOverRate': data['f168'],
             "biding": []
         }
         for field_item in total_field_list:
@@ -254,7 +260,6 @@ class StockService(object):
                 "code": stock['symbol'],
                 "name": stock['name']
             })
-        print(result)
         return result
 
 
