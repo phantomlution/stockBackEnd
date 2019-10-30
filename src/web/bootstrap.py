@@ -3,6 +3,7 @@ from src.service.StockService import StockService
 from src.script.job.StockTradeDataJob import StockTradeDataJob
 from src.assets.DataProvider import DataProvider
 from src.service.DataService import DataService
+from src.service.AnalyzeService import AnalyzeService
 from flask_socketio import SocketIO, emit
 from bson import json_util
 from src.script.extractor.event import extractData
@@ -219,6 +220,11 @@ def get_estate_date_list():
         result.append( date['key'].split('_')[1])
 
     return success(result)
+
+
+@app.route('/analyze/restrict_sell', methods=['GET'])
+def get_restrict_sell_date():
+    return success(AnalyzeService.analyze_restrict_date())
 
 
 @app.route('/financial/estate', methods=['GET'])
