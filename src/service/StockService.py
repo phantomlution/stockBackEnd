@@ -11,6 +11,7 @@ stock_pool_document = mongo_instance.stock.stock_pool
 chinese_central_bank_base = 'http://www.chinamoney.com.cn'
 ten_thousand = 10000
 
+
 class StockService:
 
     @staticmethod
@@ -112,15 +113,18 @@ class StockService:
     @staticmethod
     def add_stock_pool(model):
         code = model['code']
+        base = StockService.get_stock_base(code)
+        model['name'] = base['name']
 
-        # 手动更新预披露公告公告
-        StockService.update_stock_pre_release(code)
+        if StockService.get_stock_pool_item(code) is None:
+            # 手动更新预披露公告公告
+            StockService.update_stock_pre_release(code)
 
         stock_pool_document.update({ "code": code }, model, True)
 
     @staticmethod
-    def stock_pool_exist(code):
-        return stock_pool_document.find_one({ "code": code }) is not None
+    def get_stock_pool_item(code):
+        return stock_pool_document.find_one({ "code": code }, { "_id": 0 })
 
     # 删除
     @staticmethod
@@ -366,7 +370,7 @@ class StockService:
 
         result_list = []
         for item in result:
-            if item['increment'] == 0 and str.strip(item['desc']) == '定期报告':
+            if item['increment'] < 1 or str.strip(item['desc']) == '定期报告':
                 continue
             result_list.append(item)
 
