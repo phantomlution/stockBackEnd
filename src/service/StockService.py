@@ -364,7 +364,13 @@ class StockService:
             if current < former:
                 raise Exception('序列错误')
 
-        return result
+        result_list = []
+        for item in result:
+            if item['increment'] == 0 and str.strip(item['desc']) == '定期报告':
+                continue
+            result_list.append(item)
+
+        return result_list
 
 
 if __name__ == '__main__':
