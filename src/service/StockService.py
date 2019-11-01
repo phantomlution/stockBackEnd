@@ -271,112 +271,56 @@ class StockService:
             })
         return result
 
+    @staticmethod
+    def get_all_restricted_sell_stock(result, code, page=1, page_size=20):
+        query_code = code[2:]
+        url = 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get'
+        params = {
+            "token": "70f12f2f4f091e459a279469fe49eca5",
+            "st": "ltsj",
+            "sr": -1,
+            "p": page,
+            "ps": page_size,
+            "type": "XSJJ_NJ_PC",
+            "js": '{"pages":(tp),"data":(x),"font":(font)}',
+            "filter": "(gpdm='" + query_code + "')",
+            "rt": 52416643
+        }
+
+        raw_response = get_response(url, params=params)
+        response = json.loads(str(raw_response))
+        font_mapping = response['font']['FontMapping']
+
+        def parse_font(raw):
+            font_result = raw
+            for font_map in font_mapping:
+                font_result = font_result.replace(font_map['code'], str(font_map['value']))
+
+            return int(float(font_result) * 10000)
+
+        for item in response['data']:
+            date = item['ltsj'].split('T')[0]
+            result.append({
+                "date": date,
+                "increment": parse_font(item['jjsl']),
+                "timestamp": date_str_to_timestamp(date),
+                "desc": item['xsglx']
+            })
+
+        if len(response['data']) < page_size:
+            return result
+        else:
+            return StockService.get_all_restricted_sell_stock(result, code, page + 1, page_size)
+
     # 获取限售股票
     @staticmethod
     def get_restricted_sell_stock(code):
-        url = 'http://emweb.securities.eastmoney.com/CapitalStockStructure/CapitalStockStructureAjax'
-        params = {
-            "code": code
-        }
-
-        response = json.loads(get_response(url, params=params))
-
-        result = []
-
-        old_share_change_list = response['ShareChangeList']
-
-        if len(old_share_change_list) > 0:
-            field_index = {
-                "date": -1,
-                'total_flow': -1,
-                'desc': -1
-            }
-
-            for idx, item in enumerate(old_share_change_list):
-                if old_share_change_list[idx]['des'] == '单位:万股':
-                    field_index['date'] = idx
-                    continue
-                if old_share_change_list[idx]['des'] == '已上市流通A股':
-                    field_index['total_flow'] = idx
-                    continue
-                if old_share_change_list[idx]['des'] == '变动原因':
-                    field_index['desc'] = idx
-                    continue
-
-            # 进行数据强校验
-            if field_index['date'] == -1 or field_index['total_flow'] == -1 or field_index['desc'] == -1:
-                raise Exception('数据错误')
-
-            old_count = len(old_share_change_list[field_index['date']]['changeList'])
-
-            old_share_result = []
-
-            for old_index in range(old_count):
-                date = old_share_change_list[field_index['date']]['changeList'][old_index]
-                total_flow = old_share_change_list[field_index['total_flow']]['changeList'][old_index]
-                desc = old_share_change_list[field_index['desc']]['changeList'][old_index]
-                old_share_result.append({
-                    "date": date,
-                    "totalFlow": total_flow.replace('--', '0').replace(',', ''),
-                    "desc": desc
-                })
-
-            # 重构已经解禁了的数据
-            old_share_result.reverse()
-            for old_share_index, old_share in enumerate(old_share_result):
-                if old_share_index == 0:
-                    result.append({
-                        "date": old_share['date'],
-                        "increment": float(old_share["totalFlow"]) * ten_thousand,
-                        "desc": old_share['desc'],
-                        "timestamp": date_str_to_timestamp(old_share['date'])
-                    })
-                else:
-                    result.append({
-                        "date": old_share['date'],
-                        "increment": (float(old_share['totalFlow']) - float(old_share_result[old_share_index - 1]['totalFlow'])) * ten_thousand,
-                        "desc": old_share['desc'],
-                        "timestamp": date_str_to_timestamp(old_share['date'])
-                    })
-
-        # 追加待解禁的数据
-        wait_share_list = response['RptRestrictedBanList']
-        for item in wait_share_list:
-            if item['jjsj'] == result[-1]['date']:
-                continue
-            amount_str = item['jjsl']
-            if amount_str[-1] == '亿':
-                increment = float(amount_str[:-1]) * ten_thousand * ten_thousand
-            elif amount_str[-1] == '万':
-                increment = float(amount_str[:-1]) * ten_thousand
-            else:
-                increment = int(amount_str)
-            result.append({
-                "date": item['jjsj'],
-                'increment': increment,
-                "desc": item['gplx'],
-                "timestamp": date_str_to_timestamp(item['jjsj'])
-            })
-
-        # 最终顺序校验, 升序
-        for idx, item in enumerate(result):
-            if idx == 0:
-                continue
-            former = int(result[idx - 1]['date'].replace('-', ''))
-            current = int(result[idx]['date'].replace('-', ''))
-
-            if current < former:
-                raise Exception('序列错误')
-
-        result_list = []
-        for item in result:
-            if item['increment'] < 1 or str.strip(item['desc']) == '定期报告':
-                continue
-            result_list.append(item)
-
-        return result_list
+        restrict_sell_list = []
+        StockService.get_all_restricted_sell_stock(restrict_sell_list, code)
+        restrict_sell_list.reverse()
+        return restrict_sell_list
 
 
 if __name__ == '__main__':
-    stock_code = 'sh603610'
+    stock_code = 'sh600000'
     StockService.get_restricted_sell_stock(stock_code)

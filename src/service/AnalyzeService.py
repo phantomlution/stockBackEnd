@@ -6,6 +6,7 @@ from src.assets.DataProvider import DataProvider
 
 client = StockService.getMongoInstance()
 base_document = client.stock.base
+history_document = client.stock.history
 
 
 class AnalyzeService:
@@ -36,12 +37,24 @@ class AnalyzeService:
 
         return result
 
+    @staticmethod
+    def get_stock_price(code, date):
+        history_data = history_document.find_one({"code": code })
+        for item in history_data['data']:
+            if item[0] == date:
+                return item[2]
+        return None
+
+
+
     # 通过解禁日期去计算盈利点
     @staticmethod
     def analyze_profit_point():
+        result = []
         stock_list = DataProvider().get_stock_list()
         for stock in stock_list:
             stock_base = StockService.get_stock_base(stock['code'])
+            code = stock_base['symbol']
             restrict_sell_list = stock_base['restrict_sell_list']
             for idx, restrict_sell in enumerate(restrict_sell_list):
                 if idx == 0:
@@ -49,7 +62,7 @@ class AnalyzeService:
                 diff = restrict_sell_list[idx]['timestamp'] - restrict_sell_list[idx - 1]['timestamp']
                 if diff < 62 * 24 * 60 * 60 * 1000:
                     model = {
-                        "code": stock_base['symbol'],
+                        "code": code,
                         "name": stock_base['name'],
                         "start": restrict_sell_list[idx - 1]['date'],
                         "next": restrict_sell_list[idx]['date']
@@ -57,9 +70,13 @@ class AnalyzeService:
                     date_range = model['start'].split('-')
                     year = int(date_range[0])
                     month = int(date_range[1])
-                    if year == 2019:
-                        print(model)
-
+                    start_close = AnalyzeService.get_stock_price(model['code'], model['start'])
+                    next_close = AnalyzeService.get_stock_price(model['code'], model['next'])
+                    if start_close is not None and next_close is not None:
+                        model['diff'] = (next_close - start_close) / start_close * 100
+                    if year == 2019 and 'diff' in model:
+                        result.append(model)
+        print(result)
 
 
 
