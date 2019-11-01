@@ -1,6 +1,7 @@
 import json
 import os
 
+
 class DataProvider:
 
     def load_json_file(self, file_path):

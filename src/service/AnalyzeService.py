@@ -3,10 +3,17 @@
 '''
 from src.service.StockService import StockService
 from src.assets.DataProvider import DataProvider
+from src.utils.FileUtils import generate_static_dir_file
+import os
+import json
 
 client = StockService.getMongoInstance()
 base_document = client.stock.base
 history_document = client.stock.history
+
+
+def generate_analyze_file(file_name, content):
+    return generate_static_dir_file('analyze' + os.sep + file_name, json.dumps(content))
 
 
 class AnalyzeService:
@@ -45,8 +52,6 @@ class AnalyzeService:
                 return item[2]
         return None
 
-
-
     # 通过解禁日期去计算盈利点
     @staticmethod
     def analyze_profit_point():
@@ -67,6 +72,7 @@ class AnalyzeService:
                         "start": restrict_sell_list[idx - 1]['date'],
                         "next": restrict_sell_list[idx]['date']
                     }
+                    model['desc'] = model['start'] + ', ' + model['next']
                     date_range = model['start'].split('-')
                     year = int(date_range[0])
                     month = int(date_range[1])
@@ -76,10 +82,8 @@ class AnalyzeService:
                         model['diff'] = (next_close - start_close) / start_close * 100
                     if year == 2019 and 'diff' in model:
                         result.append(model)
-        print(result)
 
-
-
+        generate_analyze_file('二次限售解禁分析.json', result)
 
 
 if __name__ == '__main__':
