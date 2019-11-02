@@ -6,6 +6,7 @@ from src.assets.DataProvider import DataProvider
 from src.utils.FileUtils import generate_static_dir_file
 import os
 import json
+import math
 
 client = StockService.getMongoInstance()
 base_document = client.stock.base
@@ -86,5 +87,48 @@ class AnalyzeService:
         generate_analyze_file('二次限售解禁分析.json', result)
 
 
+    # 获取开板点
+    @staticmethod
+    def get_price_break_point():
+        def get_diff_percent(start, end):
+            return math.fabs((start - end) * 100 / end)
+        threshold_percent = 9.8
+        code = 'SH600242'
+        history = history_document.find_one({ "code": code })
+        result = []
+        if history is not None:
+            desc_list = []
+            analyze_history = history['data']
+            for idx, item in enumerate(analyze_history):
+                if idx == 0:
+                    continue
+                yesterday_item = analyze_history[idx - 1]
+                today_item = analyze_history[idx]
+                yesterday = yesterday_item[2]
+                close = today_item[2]
+                max_price = today_item[3]
+                min_price = today_item[4]
+                close_diff_percent = get_diff_percent(close, yesterday)
+                max_diff_percent = get_diff_percent(max_price, yesterday)
+                min_diff_percent = get_diff_percent(min_price, yesterday)
+
+                if max_diff_percent > threshold_percent and close_diff_percent <= threshold_percent:
+                    desc_list.append(today_item[0] + " 涨停开板")
+                if min_diff_percent > threshold_percent and close_diff_percent <= threshold_percent:
+                    desc_list.append(today_item[0] + ' 跌停开板')
+            if len(desc_list) > 0:
+                result.append({
+                    "code": code,
+                    "desc": desc_list
+                })
+
+        print(result)
+
+
+
+
+
+
+
 if __name__ == '__main__':
-    AnalyzeService.analyze_profit_point()
+    AnalyzeService.get_price_break_point()

@@ -10,6 +10,7 @@ from src.script.extractor.event import extractData
 from src.script.extractor.centualBank import extractAllCentualBank
 import json
 from src.service.HtmlService import get_parsed_href_html, get_response
+from src.service.FinancialService import get_history_fragment_trade_data
 
 
 mongo = StockService.getMongoInstance()
@@ -226,6 +227,15 @@ def get_estate_date_list():
     return success(result)
 
 
+# 获取历史分时成交数据
+@app.route('/analyze/history/fragment/trade')
+def get_history_fragment_trade():
+    code = request.args.get('code')
+    date = request.args.get('date')
+
+    return success(get_history_fragment_trade_data(code, date))
+
+
 @app.route('/analyze/restrict_sell', methods=['GET'])
 def get_restrict_sell_date():
     return success(AnalyzeService.analyze_restrict_date())
@@ -238,10 +248,12 @@ def get_estate_data():
 
     return success(list(estate_document.find({ "date": date }, { "_id": 0 })))
 
+
 @app.route('/data/stat/country', methods=['GET'])
 def get_country_stat():
     code = request.args.get('code')
     return success(DataService.get_stat_info(code))
+
 
 @app.route('/financial/huitong/index')
 def get_huitong_index_list():
