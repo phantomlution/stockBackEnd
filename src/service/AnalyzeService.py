@@ -87,13 +87,51 @@ class AnalyzeService:
         generate_analyze_file('二次限售解禁分析.json', result)
 
 
-    # 获取开板点
     @staticmethod
     def get_price_break_point():
+        result= []
+        stock_list = DataProvider().get_stock_list()
+        # stock_list = [{
+        #     "code": 'SH600242'
+        # }]
+        for stock in stock_list:
+            result += AnalyzeService.get_price_break_point_by_code(stock["code"])
+
+        final_result = []
+        for item in result:
+            for desc in item['desc']:
+                date = desc.split(' ')[0]
+                final_result.append({
+                    "code": item['code'],
+                    "date": date
+                })
+
+        final_result = sorted(final_result, key=lambda sub_item: sub_item["date"], reverse=True)
+        print(final_result)
+
+    # 获取涨停板的次数
+    @staticmethod
+    def get_ceil_close_count(data_list):
+        count = 0
+        threshold_percent = 9.8
+        for idx, item in enumerate(data_list):
+            if idx == 0:
+                continue
+            yesterday_item = data_list[idx - 1]
+            today_item = data_list[idx]
+            if ((today_item[2] - yesterday_item[2]) / yesterday_item[2] * 100) >= threshold_percent:
+                count += 1
+
+        return count
+
+
+    # 获取开板点
+    @staticmethod
+    def get_price_break_point_by_code(code):
         def get_diff_percent(start, end):
             return math.fabs((start - end) * 100 / end)
         threshold_percent = 9.8
-        code = 'SH600242'
+
         history = history_document.find_one({ "code": code })
         result = []
         if history is not None:
@@ -112,17 +150,31 @@ class AnalyzeService:
                 max_diff_percent = get_diff_percent(max_price, yesterday)
                 min_diff_percent = get_diff_percent(min_price, yesterday)
 
-                if max_diff_percent > threshold_percent and close_diff_percent <= threshold_percent:
-                    desc_list.append(today_item[0] + " 涨停开板")
-                if min_diff_percent > threshold_percent and close_diff_percent <= threshold_percent:
-                    desc_list.append(today_item[0] + ' 跌停开板')
+                # if max_diff_percent > threshold_percent and close_diff_percent <= threshold_percent:
+                #     desc_list.append(today_item[0] + " 涨停开板")
+                # if min_diff_percent >= threshold_percent and close_diff_percent < threshold_percent:
+                if True:
+                    if idx > 30:
+                        last_month_trade_list = analyze_history[idx - 1 - 30:idx - 1]
+                        ceil_close_count = AnalyzeService.get_ceil_close_count(last_month_trade_list)
+                        if ceil_close_count > 1:
+                            next_month_trade_list = analyze_history[idx: idx + 60]
+                            if len(last_month_trade_list) > 0 and len(next_month_trade_list) > 0:
+                                sorted_last_month_trade_list = sorted(last_month_trade_list, key=lambda biding: biding[2])
+                                sorted_next_month_trade_list = sorted(next_month_trade_list, key=lambda biding: biding[2])
+                                max_close = sorted_last_month_trade_list[-1][2]
+                                min_close = sorted_next_month_trade_list[0][2]
+                                if ((max_close - min_close) / max_close) * 100 >= 60:
+                                    desc_string = sorted_next_month_trade_list[0][0] + ' 类跌停'
+                                    if desc_string not in desc_list:
+                                        desc_list.append(desc_string)
             if len(desc_list) > 0:
                 result.append({
                     "code": code,
                     "desc": desc_list
                 })
 
-        print(result)
+        return result
 
 
 

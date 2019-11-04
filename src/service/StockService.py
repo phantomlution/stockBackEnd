@@ -41,16 +41,17 @@ class StockService:
         result = []
 
         base_model = base_document.find_one({"symbol": code})
-        if 'pre_release_list' in base_model:
-            for release in base_model['pre_release_list']:
-                result.append({
-                    "title": release['sjlx'] + '_' + release['sjms'],
-                    "date": release['rq'].split('T')[0],
-                    "type": release['sjlx'],
-                    "important": True,
-                    "stock_name": base_model['name'],
-                    "stock_code": code
-                })
+        if base_model is not None:
+            if 'pre_release_list' in base_model:
+                for release in base_model['pre_release_list']:
+                    result.append({
+                        "title": release['sjlx'] + '_' + release['sjms'],
+                        "date": release['rq'].split('T')[0],
+                        "type": release['sjlx'],
+                        "important": True,
+                        "stock_name": base_model['name'],
+                        "stock_code": code
+                    })
 
         return result
 
@@ -133,7 +134,11 @@ class StockService:
 
     @staticmethod
     def get_stock_pool():
-        return list(stock_pool_document.find({}, { "_id": 0 }))
+        item_list_cursor = stock_pool_document.aggregate([
+            { "$sort": { "order": -1, "temp": 1 } },
+            { "$project": { "_id": 0 } }
+        ])
+        return list(item_list_cursor)
 
     @staticmethod
     def get_notice_list(code):
@@ -190,7 +195,6 @@ class StockService:
     # 获取股票竞价信息
     @staticmethod
     def get_stock_biding(code):
-
         def generate_biding_field_list(name_prefix, increment_base):
             field_list = []
             index_range = 5
@@ -322,5 +326,6 @@ class StockService:
 
 
 if __name__ == '__main__':
-    stock_code = 'sh600000'
-    StockService.get_restricted_sell_stock(stock_code)
+    stock_code = 'SH000001'
+    result = StockService.get_stock_biding(stock_code)
+    print(result)
