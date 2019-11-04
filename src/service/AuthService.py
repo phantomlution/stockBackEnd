@@ -16,6 +16,7 @@ class AuthService:
         driver = webdriver.Chrome(chrome_options=options)
         driver.get('https://xueqiu.com/S/SZ000007')
         local_cookies = driver.get_cookies()
+        driver
         for cookie in local_cookies:
             cookies[cookie['name']] = cookie['value']
         driver.quit()

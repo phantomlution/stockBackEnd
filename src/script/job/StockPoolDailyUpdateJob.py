@@ -23,8 +23,8 @@ class StockPoolDailyUpdateJob:
         try:
             StockService.update_stock_pre_release(code)
             self.job.success(task_id)
-        except:
-            self.job.fail(task_id, '加载预披露信息失败')
+        except Exception as e:
+            self.job.fail(task_id, e)
 
     def run(self, end_func=None):
         self.job.start(self.start, end_func)

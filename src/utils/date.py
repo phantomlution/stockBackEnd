@@ -3,6 +3,8 @@ from datetime import date, datetime, timedelta
 
 time_format = '%Y-%m-%d'
 
+full_time_format = time_format + ' %H:%M:%S'
+
 
 def getCurrent():
     return datetime.now()
@@ -10,6 +12,10 @@ def getCurrent():
 
 def get_current_date_str():
     return getCurrent().strftime(time_format)
+
+
+def get_current_datetime_str():
+    return getCurrent().strftime(full_time_format)
 
 
 def date_str_to_timestamp(date_str, format_rule=time_format):

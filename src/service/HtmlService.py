@@ -14,7 +14,14 @@ def extract_jsonp(response, jsonp):
     return json.loads(content)
 
 
-def get_response(url, headers=None, params=None, encoding=None):
+def get_response(url, headers=None, params=None, encoding=None, use_proxy=False):
+    if use_proxy:
+        proxy = {
+            "http": "socks5://127.0.0.1:1086",
+            "https": 'socks5://127.0.0.1:1086'
+        }
+    else:
+        proxy = None
     request_headers = {
         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36'
     }
@@ -22,7 +29,7 @@ def get_response(url, headers=None, params=None, encoding=None):
         for header in headers:
             request_headers[header] = headers[header]
 
-    response = requests.get(url, headers=request_headers, params=params)
+    response = requests.get(url, headers=request_headers, params=params, proxies=proxy)
 
     if encoding is not None:
         return response.content.decode(encoding)
