@@ -4,6 +4,7 @@ from src.script.job.StockTradeDataJob import StockTradeDataJob
 from src.assets.DataProvider import DataProvider
 from src.service.DataService import DataService
 from src.service.AnalyzeService import AnalyzeService
+from src.service.NewsService import NewsService
 from flask_socketio import SocketIO, emit
 from bson import json_util
 from src.script.extractor.event import extractData
@@ -161,6 +162,7 @@ def get_all_company_stock_share():
     url = request.args.get('url')
     return success(StockService.get_all_stock_share_company(url))
 
+
 @app.route('/stock/detail/pledge')
 def get_stock_pledge():
     code = request.args.get('code')
@@ -172,6 +174,10 @@ def get_stock_biding():
     code = request.args.get('code')
     return success(StockService.get_stock_biding(code))
 
+@app.route('/news/page')
+def get_news_page():
+
+    return success(NewsService.paginate())
 
 def socket_success(data):
     return json.dumps({
