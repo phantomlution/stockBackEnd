@@ -11,9 +11,10 @@ session = FuturesSession(max_workers=1)
 
 class DataService(object):
 
-    # 获取农产品指数
+    # 获取农产品指数(deprecated)
     @staticmethod
     def get_farm_product_index(code):
+        # 页面地址（全国农产品商务信息公共服务平台-价格指数）：http://nc.mofcom.gov.cn/zhuanti/ap88/jgzs.shtml（已失效）
         url = "http://www.chinaap.com/chinaapindex/index/getBrokenLine"
         params = {
             "goodsId": code
