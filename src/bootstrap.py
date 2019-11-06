@@ -25,7 +25,6 @@ calculateBiKiller = getattr(StockTradeDataJob(), 'load_stock_data')
 # TODO
 getTotalStockList = getattr(DataProvider(), 'get_stock_list')
 
-
 def success(data = {}):
     return jsonify({
         "code": "200",
@@ -79,16 +78,17 @@ def get_stock_list():
     return success(DataProvider().get_stock_list())
 
 
-@app.route('/stock/capital/flow')
-def get_stock_capital_flow():
-    date = request.args.get('date')
-    return success(mongo.stock.capitalFlow.find_one({ "date": date }, { "_id": 0 }))
-
-
 @app.route('/stock/capital/hotMoney')
-def hotMoney():
+def get_hot_money():
     date = request.args.get('date')
-    return success(mongo.stock.hotMoney.find_one({ "date": date }, { "_id": 0 }))
+    is_live = request.args.get('live')
+
+    if str.lower(is_live) == 'true':
+        result = StockService.get_hot_money_data()
+    else:
+        result = mongo.stock.hotMoney.find_one({ "date": date }, { "_id": 0 })
+
+    return success(result)
 
 
 # 获取预披露的公告信息

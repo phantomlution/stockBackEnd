@@ -25,6 +25,8 @@ class AnalyzeService:
         date_map = {}
         for stock in stock_list:
             code = stock['symbol']
+            if 'restrict_sell_list' not in stock:
+                continue
             restrict_sell_list = stock['restrict_sell_list']
             for restrict_sell_item in restrict_sell_list:
                 if restrict_sell_item['increment'] == 0 or '首发' in restrict_sell_item['desc']:
