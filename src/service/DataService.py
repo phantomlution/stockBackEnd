@@ -2,7 +2,7 @@
     部分数据接口对接
 '''
 from src.utils.sessions import FuturesSession
-from src.service.HtmlService import get_response
+from src.service.HtmlService import get_response, get_absolute_url_path, get_parsed_href_html
 from src.utils import date
 import json
 from src.utils.date import get_english_month, get_ambiguous_date
@@ -95,8 +95,10 @@ class DataService(object):
 
         date_text = html.select_one('#needleAsOfDate').text.split(' at ')[0].split(' ')
 
+        release_date = get_ambiguous_date(get_english_month(date_text[-2]), int(date_text[-1]))
         model = {
-            "lastUpdateAt": get_ambiguous_date(get_english_month(date_text[-2]), int(date_text[-1])),
+            "release_date": release_date,
+            "id": release_date,
             "indicator_list": []
         }
         li_list = index_indicator.contents
@@ -140,6 +142,90 @@ class DataService(object):
 
         return model
 
+    # 获取美债收益率
+    @staticmethod
+    def get_american_securities_yield():
+        url = 'https://sbcharts.investing.com/bond_charts/bonds_chart_1.json'
+        response = get_response(url)
+        data_json = json.loads(response)
+        update_date = data_json['last_updated'][:10]
+
+        current = data_json['current']
+        current_data_map = {}
+        for item in current:
+            current_data_map[item[0]] = item[1]
+
+        for item_date in ['1M', '3M', '6M', '1Y', '2Y', '3Y', '10Y']:
+            if item_date not in current_data_map:
+                raise Exception('数据错误')
+
+        return {
+            "release_date": update_date,
+            "id": update_date,
+            "data": current_data_map
+        }
+
+    # 获取央行公开市场操作最近数据
+    @staticmethod
+    def get_latest_central_bank_open_market_operation():
+        url = 'http://www.chinamoney.com.cn/ags/ms/cm-s-notice-query/contents'
+        params = {
+            "pageNo": '1',
+            "pageSize": "5",
+            "channelId": '2845'
+        }
+        response = get_response(url, params=params)
+        response_json = json.loads(response)
+        records = response_json['records']
+
+        result = []
+        for record in records:
+            if '公开市场' not in record['title']:
+                raise Exception('数据异常')
+
+            content_url = get_absolute_url_path(url, record['draftPath'])
+            content_raw_html = get_response(content_url)
+            content_raw_html = get_parsed_href_html(url, content_raw_html)
+            content_html = BeautifulSoup(content_raw_html, 'html.parser')
+            content_body = content_html.select_one(".article-a-content > div")
+            if content_body is None:
+                raise Exception('数据异常')
+
+            model = {
+                "title": record['title'],
+                "id": record['channelId'] + '_' + record['contentId'],
+                "release_date": record['releaseDate'],
+                "html": str(content_body)
+            }
+
+            result.append(model)
+
+        return result
+
+    # 获取 LPR 最新数据
+    @staticmethod
+    def get_latest_lpr_biding():
+        url = 'http://www.chinamoney.com.cn/r/cms/www/chinamoney/data/currency/bk-lpr.json'
+        response = get_response(url)
+        response_json = json.loads(response)
+        records = response_json['records']
+
+        biding_map = {}
+        for record in records:
+            biding_map[record['termCode']] = float(record['shibor'])
+
+        if '1Y' not in biding_map or '5Y' not in biding_map:
+            raise Exception('数据异常')
+
+        release_date = response_json['data']['showDateCN'][:10]
+        return {
+            "release_date": release_date,
+            "id": release_date,
+            "data": biding_map
+        }
+
+
+
 
 if __name__ == '__main__':
-    DataService().get_stat_info()
+    print(DataService().get_latest_lpr_biding())
