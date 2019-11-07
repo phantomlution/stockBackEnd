@@ -13,7 +13,7 @@ from src.script.extractor.centualBank import extractAllCentualBank
 import json
 from src.service.HtmlService import get_parsed_href_html, get_response
 from src.service.FinancialService import get_history_fragment_trade_data
-
+from src.script.worker.WorkScheduler import start_schedule
 
 mongo = StockService.getMongoInstance()
 
@@ -310,7 +310,8 @@ def test_message(message):
 
 
 if __name__ == '__main__':
-    # app.run(port=5001)
+    # 启动任务调度
+    start_schedule()
     port = 5001
     print('server run at:' + str(port))
     socketio.run(app, port=port)

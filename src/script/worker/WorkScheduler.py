@@ -4,7 +4,10 @@ from functools import wraps
 from src.service.NotificationService import NotificationService
 from src.utils.date import get_current_datetime_str
 import time
+import threading
 import schedule
+import signal
+import sys
 
 news_scratch_worker = NewsScratchWorker()
 data_monitor_worker = DataMonitorWorker()
@@ -45,18 +48,36 @@ def update_notification():
     data_monitor_worker.update_lpr_biding_change()
 
 
-def init_task():
+def run_continuously(interval=1):
+
+    cease_continuous_run = threading.Event()
+
+    class ScheduleThread(threading.Thread):
+        @classmethod
+        def run(cls):
+            while not cease_continuous_run.is_set():
+                schedule.run_pending()
+                time.sleep(interval)
+
+    continuous_thread = ScheduleThread()
+    continuous_thread.start()
+
+    def signal_handler(signal, frame):
+        cease_continuous_run.set()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    print('schedule thread started')
+    return cease_continuous_run
+
+
+# 提供给外部引用
+def start_schedule():
     schedule.every(30).minutes.do(update_news)
     schedule.every(25).minutes.do(update_notification)
 
+    run_continuously(5)
+
 
 if __name__ == '__main__':
-    init_task()
-    update_notification()
-    update_news()
-
-    while True:
-        schedule.run_pending()
-        time.sleep(5 * 60)
-
-
+    start_schedule()
