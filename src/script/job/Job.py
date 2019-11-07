@@ -20,6 +20,7 @@ class Job:
         self.end_time = None
         self.execute_duration = 0
         self.done_func = None
+        self.timer = None
         self.progress_timer_interval = 60  # 打印进度间隔
 
     # 生成任务列表
@@ -68,6 +69,9 @@ class Job:
         start_func()
 
     def end(self):
+        if self.timer is not None:
+            self.timer.cancel()
+            self.timer = None
         self.end_time = datetime.datetime.now()
         self.execute_duration = (self.end_time - self.start_time).seconds
         progress = self.get_progress()
@@ -81,8 +85,8 @@ class Job:
         if progress['done']:
             return
         print(progress)
-        timer = Timer(self.progress_timer_interval, self.start_progress_timer)
-        timer.start()
+        self.timer = Timer(self.progress_timer_interval, self.start_progress_timer)
+        self.timer.start()
 
     # 获取进度
     def get_progress(self):
