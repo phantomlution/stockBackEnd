@@ -24,7 +24,8 @@ def schedule_monitor(func):
             NotificationService.add('schedule_failed', {
                 "title": func_name + '执行失败',
                 "raw": {
-                    "id": func_name + get_current_datetime_str()
+                    "id": func_name + get_current_datetime_str(),
+                    "exception": e
                 }
             })
 
