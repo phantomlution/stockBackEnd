@@ -5,6 +5,8 @@ time_format = '%Y-%m-%d'
 
 full_time_format = time_format + ' %H:%M:%S'
 
+month_short_list = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
 
 def getCurrent():
     return datetime.now()
@@ -34,6 +36,10 @@ def format_timestamp(timestamp, format_rule=time_format):
     return datetime.fromtimestamp(timestamp // 1000).strftime(format_rule)
 
 
+def format_date(date_obj, format_rule=time_format):
+    return date_obj.strftime(format_rule)
+
+
 def getDaysFrom2000(date1):
     d0 = date(2000, 1, 1)
 
@@ -58,3 +64,22 @@ def get_split_range(start, end, duration):
     })
 
     return result
+
+
+# 提取月份
+def get_english_month(month_str):
+    if month_str not in month_short_list:
+        raise Exception('日期错误')
+    return month_short_list.index(month_str) + 1
+
+
+# 将模糊的日期转化成真实的日期
+def get_ambiguous_date(month, day):
+    current = datetime.now()
+    year = current.year
+    current_month = current.month
+    print(current_month)
+    if month > current_month:
+        year -= 1
+
+    return format_date(date(year, month, int(day)))

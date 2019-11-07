@@ -5,8 +5,11 @@ from src.service.HtmlService import get_response, get_parsed_href_html
 from src.utils.date import get_current_date_str, get_current_datetime_str, getCurrentTimestamp, date_str_to_timestamp
 from bs4 import BeautifulSoup
 import json
-from src.service.StockService import StockService
 from functools import wraps
+from src.service.StockService import StockService
+
+client = StockService.getMongoInstance()
+news_document = client.stock.news
 
 source_config = {
     "cnbc": {
@@ -40,9 +43,6 @@ source_config = {
     }
 }
 
-client = StockService.getMongoInstance()
-news_document = client.stock.news
-
 
 def news_updator(func):
     @wraps(func)
@@ -70,7 +70,7 @@ def news_updator(func):
     return update_news
 
 
-class NewsScratchJob:
+class NewsScratchWorker:
 
     def fix_date(self, date_str):
         separator = '-'
@@ -323,10 +323,10 @@ class NewsScratchJob:
 
 
 if __name__ == '__main__':
-    NewsScratchJob().get_cnbc_news()
-    NewsScratchJob().get_financial_times_news()
-    NewsScratchJob().get_central_bank_communication_news()
-    NewsScratchJob().get_foreign_affair_news()
-    NewsScratchJob().get_development_revolution_committee_news()
-    NewsScratchJob().get_prc_board_meeting_news()
-    NewsScratchJob().get_prc_collective_learning_news()
+    NewsScratchWorker().get_cnbc_news()
+    NewsScratchWorker().get_financial_times_news()
+    NewsScratchWorker().get_central_bank_communication_news()
+    NewsScratchWorker().get_foreign_affair_news()
+    NewsScratchWorker().get_development_revolution_committee_news()
+    NewsScratchWorker().get_prc_board_meeting_news()
+    NewsScratchWorker().get_prc_collective_learning_news()
