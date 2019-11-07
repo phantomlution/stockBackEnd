@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import json
 from functools import wraps
 from src.service.StockService import StockService
+from src.utils.date import get_ambiguous_date
 
 client = StockService.getMongoInstance()
 news_document = client.stock.news
@@ -29,7 +30,7 @@ source_config = {
         "label": '外交部表态',
         "url": 'https://www.fmprc.gov.cn/web/fyrbt_673021/dhdw_673027/'
     },
-    "development_revolution_committee": {
+    "development_revolution_committee": { # deprecated
         "label": '发改委',
         "url": 'http://www.ndrc.gov.cn/'
     },
@@ -40,6 +41,10 @@ source_config = {
     'prc_collective_learning': {
         "label": 'prc_collective_learning',
         "url": 'http://www.12371.cn/special/lnzzjjtxx/'
+    },
+    'commerce_department_news_press': { # 商务部
+        "label": 'commerce_department_news_press',
+        "url": 'http://www.mofcom.gov.cn/article/ae/'
     }
 }
 
@@ -321,12 +326,38 @@ class NewsScratchWorker:
 
         return result
 
+    @news_updator
+    def get_commerce_department_news_press_news(self):
+        result = []
+        source = 'commerce_department_news_press'
+        url = source_config[source]['url']
+        raw_html = get_response(url)
+        parsed_raw_html = get_parsed_href_html(url, raw_html)
+        html = BeautifulSoup(parsed_raw_html, 'html.parser')
+        section_list = html.select('section.f-mt20')
+        for section in section_list:
+            section_name = section.select_one("header h3").text
+            article_list = section.select('.u-newsList01 li')
+            for article in article_list:
+                title_item = article.select_one('a')
+                date_item = article.select_one("span").text.replace('[', '').replace(']', '').split('-')
+                month = int(date_item[0])
+                day = int(date_item[1])
+                release_date = get_ambiguous_date(month, day)
+                result.append({
+                    "source": source,
+                    "title": title_item.text,
+                    "section": section_name,
+                    "url": title_item['href'],
+                    "publish_date": release_date
+                })
+        return result
+
+
+
+
 
 if __name__ == '__main__':
+    # 重要的数据手动同步
     NewsScratchWorker().get_cnbc_news()
     NewsScratchWorker().get_financial_times_news()
-    NewsScratchWorker().get_central_bank_communication_news()
-    NewsScratchWorker().get_foreign_affair_news()
-    NewsScratchWorker().get_development_revolution_committee_news()
-    NewsScratchWorker().get_prc_board_meeting_news()
-    NewsScratchWorker().get_prc_collective_learning_news()
