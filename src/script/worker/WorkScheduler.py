@@ -77,7 +77,3 @@ def start_schedule():
     schedule.every(5).minutes.do(update_notification)
 
     run_continuously(5 * 60)
-
-
-if __name__ == '__main__':
-    start_schedule()
