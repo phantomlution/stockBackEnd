@@ -5,6 +5,7 @@ from src.assets.DataProvider import DataProvider
 from src.service.DataService import DataService
 from src.service.AnalyzeService import AnalyzeService
 from src.service.NewsService import NewsService
+from bson.objectid import ObjectId
 from flask_socketio import SocketIO, emit
 from bson import json_util
 from src.script.extractor.event import extractData
@@ -173,6 +174,25 @@ def get_stock_pledge():
 def get_stock_biding():
     code = request.args.get('code')
     return success(StockService.get_stock_biding(code))
+
+
+# 获取所有的未读通知
+@app.route('/notification/list')
+def get_unread_notification():
+    result = []
+    notification_list = mongo.stock.notification.find({"has_read": False})
+    for notification in notification_list:
+        notification['_id'] = str(notification['_id'])
+        result.append(notification)
+    return success(result)
+
+
+@app.route('/notification/read', methods=['PUT'])
+def update_notification_read_status():
+    _id = request.args.get('id')
+    mongo.stock.notification.update({ "_id": ObjectId(_id) }, { '$set': { "has_read": True}})
+    return success()
+
 
 @app.route('/news/page')
 def get_news_page():

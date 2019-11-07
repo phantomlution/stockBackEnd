@@ -78,7 +78,6 @@ def get_ambiguous_date(month, day):
     current = datetime.now()
     year = current.year
     current_month = current.month
-    print(current_month)
     if month > current_month:
         year -= 1
 
