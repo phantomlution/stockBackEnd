@@ -151,11 +151,9 @@ class StockService:
     @staticmethod
     def parse_stock_notice_item(item):
         market_name = item['CDSY_SECUCODES'][0]['TRADEMARKET']
-        if '深交所' in market_name:
+        if '深交所' in market_name or '深圳证券' in market_name:
             prefix = 'SZ'
-        elif '深圳证券' in market_name:
-            prefix = 'SZ'
-        elif '上交所' in market_name:
+        elif '上交所' in market_name or '上海证券' in market_name:
             prefix = 'SH'
         elif '香港交易所' in market_name:
             return None

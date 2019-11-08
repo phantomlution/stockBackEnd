@@ -10,6 +10,18 @@ client = StockService.getMongoInstance()
 estate_document = client.stock.estate
 sync_document = client.stock.sync
 
+response_cache = {}
+
+
+def get_cached_response(url):
+    if url in response_cache:
+        print('cached')
+        return response_cache[url]
+    response = get_response(url)
+    response_cache[url] = response
+
+    return response
+
 
 class EstateDataJob:
 
@@ -34,7 +46,7 @@ class EstateDataJob:
     def extract_city_json(self):
         city_map = {}
         url = 'https://www.ke.com/city/'
-        raw_html = get_response(url)
+        raw_html = get_cached_response(url)
         html = BeautifulSoup(raw_html, 'html.parser')
         province_html_list = html.select(".city_province")
         for province_html in province_html_list:
@@ -70,15 +82,15 @@ class EstateDataJob:
 
     # 目前先只提取城市的数值，如果有必要，通过累加区的信息来累加获得市的数据
     def extract_city_data(self, url):
-        raw_html = get_response(url)
+        print(url)
+        raw_html = get_cached_response(url)
         html = BeautifulSoup(raw_html, 'html.parser')
-        try:
-            count_element = html.select_one(".resultDes .total span")
-            if count_element is None:
-                count_element = html.select_one('.resblock-have-find .value')
-            count = str.strip(count_element.text)
-        except Exception as e:
-            print(url)
+        count_element = html.select_one(".resultDes .total span")
+        if count_element is None:
+            count_element = html.select_one('.resblock-have-find .value')
+        count = str.strip(count_element.text)
+        if count == '' or count == '0':
+            raise Exception('count 异常')
         return count
 
     def get_city_data(self, city):
@@ -146,6 +158,7 @@ class EstateDataJob:
             progress['done'] = True
             sync_document.update({ "key": sync_key}, progress, True)
         except Exception as e:
+            print(e)
             time.sleep(1)
             self.get_all_data()
 

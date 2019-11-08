@@ -14,6 +14,10 @@ def extract_jsonp(response, jsonp):
     return json.loads(content)
 
 
+session = requests.session()
+session.keep_alive = False
+
+
 def get_response(url, headers=None, params=None, encoding=None, use_proxy=False):
     if use_proxy:
         proxy = {
@@ -31,8 +35,11 @@ def get_response(url, headers=None, params=None, encoding=None, use_proxy=False)
 
     response = requests.get(url, headers=request_headers, params=params, proxies=proxy)
 
+    result = {
+        "response": ''
+    }
     if encoding is not None:
-        return response.content.decode(encoding)
+        result['response'] = response.content.decode(encoding)
     else:
         if 'content-type' in response.headers:
             content_type = response.headers['content-type'].split(';')
@@ -42,9 +49,12 @@ def get_response(url, headers=None, params=None, encoding=None, use_proxy=False)
                     encoding = content_type_str.split('=')[-1]
                     break
         if encoding is not None and len(encoding) > 0:
-            return response.content.decode(encoding)
+            result['response'] = response.content.decode(encoding)
         else:
-            return response.content.decode('utf-8')
+            result['response'] = response.content.decode('utf-8')
+
+    response.close()
+    return result['response']
 
 
 # 爬取页面后，将页面中相对路径全部转换成为绝对路径
