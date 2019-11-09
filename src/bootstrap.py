@@ -196,8 +196,23 @@ def update_notification_read_status():
 
 @app.route('/news/page')
 def get_news_page():
-
     return success(NewsService.paginate())
+
+
+@app.route('/news/mark/read', methods=['PUT'])
+def update_news_read_status():
+    _id = request.args.get('id')
+    NewsService.mark_read(_id)
+    return success()
+
+
+@app.route('/news/mark/subscribe', methods=['PUT'])
+def update_news_subscribe():
+    _id = request.args.get('id')
+    subscribe = int(request.args.get('subscribe'))
+    NewsService.mark_subscribe(_id, subscribe)
+    return success()
+
 
 def socket_success(data):
     return json.dumps({

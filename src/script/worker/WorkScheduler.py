@@ -39,6 +39,7 @@ def update_news():
     news_scratch_worker.get_prc_board_meeting_news()
     news_scratch_worker.get_prc_collective_learning_news()
     news_scratch_worker.get_commerce_department_news_press_news()
+    news_scratch_worker.get_cnbc_news()
 
 
 @schedule_monitor

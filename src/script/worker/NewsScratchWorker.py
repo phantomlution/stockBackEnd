@@ -57,6 +57,7 @@ def news_updator(func):
         for news in news_list:
             news["create_date"] = get_current_datetime_str()
             news["create_timestamp"] = getCurrentTimestamp()
+            news['subscribe'] = False
             news["has_read"] = False
             if 'premium' not in news:
                 news['premium'] = False
