@@ -32,6 +32,7 @@ class NotificationService:
     def fail(title, exception):
         model = {
             "title": title,
+            "description": '执行失败',
             "raw": {
                 "id": get_current_datetime_str() + '_' + str(uuid.uuid4()),
                 "exception": str(exception)

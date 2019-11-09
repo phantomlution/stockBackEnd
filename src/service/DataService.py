@@ -5,7 +5,7 @@ from src.utils.sessions import FuturesSession
 from src.service.HtmlService import get_response, get_absolute_url_path, get_parsed_href_html
 from src.utils import date
 import json
-from src.utils.date import get_english_month, get_ambiguous_date
+from src.utils.date import get_english_month, get_ambiguous_date, full_time_format, parse_date_str, date_obj_to_timestamp
 from bs4 import BeautifulSoup
 
 session = FuturesSession(max_workers=1)
@@ -224,8 +224,62 @@ class DataService(object):
             "data": biding_map
         }
 
+    # 获取汇通网7*24数据
+    @staticmethod
+    def get_fx_live(date_str):
+        result = []
+        url = 'http://kx.fx678.com/date/' + date_str
+        raw_html = get_response(url)
+        parse_raw_html = get_parsed_href_html(url, raw_html)
+        html = BeautifulSoup(parse_raw_html, 'html.parser')
+        item_list = html.select(".body_zb_li")
+        for item in item_list:
+            date_time_str = date_str + " " + str.strip(item.select_one('.zb_time').text)
+            if '快讯' in date_time_str:
+                continue
+            important = item.select_one(".zb_word .red_color_f") is not None
+            model = {
+                'macro': False, # 是否是宏观数据
+                "isImportant": important,
+                "imageList": [],
+                "timestamp": date_obj_to_timestamp(parse_date_str(date_time_str, format_rule=full_time_format))
+            }
 
+            title_item = item.select_one(".zb_word")
+            if title_item is None:
+                # 经济数据
+                model['title'] = item.select_one(".zb_font span").text
+                model['macro'] = True
+
+                image_list = item.select("img")
+                for image in image_list:
+                    model['imageList'].append({
+                        "name": image['title'],
+                        "src": image['src']
+                    })
+
+                value_list = item.select('.nom_bg')
+                for value in value_list:
+                    if '前值' in value.contents[0]:
+                        model['former'] = value.contents[1].text
+                    elif '预期' in value.contents[0]:
+                        model['predict'] = value.contents[1].text
+                    else:
+                        raise Exception('数据错误')
+                current_item = item.select_one(".zb_star")
+                if '实际值' not in current_item.text:
+                    raise Exception('数据错误')
+                model['current'] = current_item.select_one("em").text
+            else:
+                model['title'] = str.strip(title_item.text)
+                href_item = title_item.select_one("a")
+                if href_item is not None:
+                    model['url'] = href_item['href']
+
+            result.append(model)
+
+        return result
 
 
 if __name__ == '__main__':
-    print(DataService().get_latest_lpr_biding())
+    print(DataService().get_fx_live('2019-11-09'))

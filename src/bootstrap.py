@@ -214,6 +214,14 @@ def update_news_subscribe():
     return success()
 
 
+@app.route('/live/fx')
+def get_fx_live():
+    date_str = request.args.get('date')
+
+    result = DataService.get_fx_live(date_str)
+
+    return success(result)
+
 def socket_success(data):
     return json.dumps({
         "code": 200,
