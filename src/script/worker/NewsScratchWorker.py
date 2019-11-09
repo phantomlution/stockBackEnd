@@ -2,7 +2,7 @@
     新闻内容采集
 '''
 from src.service.HtmlService import get_response, get_parsed_href_html
-from src.utils.date import get_current_date_str, get_current_datetime_str, getCurrentTimestamp, date_str_to_timestamp
+from src.utils.date import get_current_date_str, get_current_datetime_str, getCurrentTimestamp, date_str_to_timestamp, parse_date_str, getCurrent
 from bs4 import BeautifulSoup
 import json
 from functools import wraps
@@ -45,6 +45,10 @@ source_config = {
     'commerce_department_news_press': { # 商务部
         "label": 'commerce_department_news_press',
         "url": 'http://www.mofcom.gov.cn/article/ae/'
+    },
+    'sina_finance': {
+        "label": 'sina_finance',
+        "url": 'http://finance.sina.com.cn/zt/'
     }
 }
 
@@ -354,11 +358,46 @@ class NewsScratchWorker:
                 })
         return result
 
+    @news_updator
+    def get_sina_financial_news(self):
+        result = []
+        source = 'sina_finance'
+        url = source_config[source]['url']
+        raw_html = get_response(url)
+        html = BeautifulSoup(raw_html, 'html.parser')
+        column_list = html.select(".main2")
+        current = getCurrent()
+        got_column = False
+        for column in column_list:
+            column_name = column.select_one(".title1 h2").text
+            if str.strip(column_name) == '财经专题':
+                got_column = True
+                article_list = column.select("li")
+                for article in article_list:
+                    publish_date = article.contents[1].replace('(', '').replace(')', '')
+                    # 只提取最近7天数据
+                    date_obj = parse_date_str(publish_date)
+                    diff = current - date_obj
+                    # 最多同步近三天的数据
+                    if diff.days > 3:
+                        break
 
+                    title_item = article.contents[0]
+                    model = {
+                        "source": source,
+                        "title": str.strip(title_item.text),
+                        "section": '财经专题',
+                        "url": title_item['href'],
+                        "publish_date": publish_date
+                    }
+                    result.append(model)
 
+        if not got_column:
+            raise Exception('找不到对应的专题')
+
+        return result
 
 
 if __name__ == '__main__':
     # 重要的数据手动同步
-    NewsScratchWorker().get_cnbc_news()
     NewsScratchWorker().get_financial_times_news()

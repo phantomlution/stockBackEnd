@@ -21,7 +21,7 @@ def get_current_datetime_str():
 
 
 def date_str_to_timestamp(date_str, format_rule=time_format):
-    return date_obj_to_timestamp(datetime.strptime(date_str, format_rule))
+    return date_obj_to_timestamp(parse_date_str(date_str, format_rule))
 
 
 def date_obj_to_timestamp(date_obj):
@@ -34,6 +34,10 @@ def getCurrentTimestamp():
 
 def format_timestamp(timestamp, format_rule=time_format):
     return datetime.fromtimestamp(timestamp // 1000).strftime(format_rule)
+
+
+def parse_date_str(date_str, format_rule=time_format):
+    return datetime.strptime(date_str, format_rule)
 
 
 def format_date(date_obj, format_rule=time_format):

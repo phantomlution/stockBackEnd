@@ -20,14 +20,8 @@ def schedule_monitor(func):
             func(*args, **kwargs)
         except Exception as e:
             print(e)
-            func_name = func.__name__
-            NotificationService.add('schedule_failed', {
-                "title": func_name + '执行失败',
-                "raw": {
-                    "id": func_name + get_current_datetime_str(),
-                    "exception": e
-                }
-            })
+            title = 'schedule_' + func.__name__
+            NotificationService.fail(title, e)
 
     return func_log
 
@@ -40,6 +34,7 @@ def update_news():
     news_scratch_worker.get_prc_collective_learning_news()
     news_scratch_worker.get_commerce_department_news_press_news()
     news_scratch_worker.get_cnbc_news()
+    news_scratch_worker.get_sina_financial_news()
 
 
 @schedule_monitor

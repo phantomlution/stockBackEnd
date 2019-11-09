@@ -1,5 +1,6 @@
 from src.service.StockService import StockService
 from src.utils.date import get_current_datetime_str
+import uuid
 
 client = StockService.getMongoInstance()
 notification_document = client.stock.notification
@@ -26,3 +27,14 @@ class NotificationService:
 
         if notification_document.find_one({"key": key, "id": model["id"]}) is None:
             notification_document.insert(model)
+
+    @staticmethod
+    def fail(title, exception):
+        model = {
+            "title": title,
+            "raw": {
+                "id": get_current_datetime_str() + '_' + str(uuid.uuid4()),
+                "exception": str(exception)
+            }
+        }
+        return NotificationService.add('execute_failed', model)
