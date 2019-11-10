@@ -338,4 +338,3 @@ if __name__ == '__main__':
     port = 5001
     print('server run at:' + str(port))
     socketio.run(app, port=port)
-    print('start')

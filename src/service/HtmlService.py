@@ -15,7 +15,6 @@ def extract_jsonp(response, jsonp):
 
 
 session = requests.session()
-session.keep_alive = False
 
 
 def get_response(url, headers=None, params=None, encoding=None, use_proxy=False):
@@ -33,7 +32,7 @@ def get_response(url, headers=None, params=None, encoding=None, use_proxy=False)
         for header in headers:
             request_headers[header] = headers[header]
 
-    response = requests.get(url, headers=request_headers, params=params, proxies=proxy)
+    response = session.get(url, headers=request_headers, params=params, proxies=proxy)
 
     result = {
         "response": ''

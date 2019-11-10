@@ -228,13 +228,16 @@ class DataService(object):
     @staticmethod
     def get_fx_live(date_str):
         result = []
-        url = 'http://kx.fx678.com/date/' + date_str
+        url = 'https://kx.fx678.com/date/' + date_str
         raw_html = get_response(url)
         parse_raw_html = get_parsed_href_html(url, raw_html)
         html = BeautifulSoup(parse_raw_html, 'html.parser')
         item_list = html.select(".body_zb_li")
         for item in item_list:
-            date_time_str = date_str + " " + str.strip(item.select_one('.zb_time').text)
+            date_item = item.select_one('.zb_time')
+            if date_item is None:
+                break
+            date_time_str = date_str + " " + str.strip(date_item.text)
             if '快讯' in date_time_str:
                 continue
             important = item.select_one(".zb_word .red_color_f") is not None
@@ -282,4 +285,4 @@ class DataService(object):
 
 
 if __name__ == '__main__':
-    print(DataService().get_fx_live('2019-11-09'))
+    print(DataService().get_fx_live('2019-11-10'))
