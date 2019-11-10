@@ -6,7 +6,7 @@ from src.service.DataService import DataService
 from src.service.AnalyzeService import AnalyzeService
 from src.service.NewsService import NewsService
 from bson.objectid import ObjectId
-from flask_socketio import SocketIO, emit
+# from flask_socketio import SocketIO, emit
 from bson import json_util
 from src.script.extractor.event import extractData
 from src.script.extractor.centualBank import extractAllCentualBank
@@ -19,7 +19,7 @@ mongo = StockService.getMongoInstance()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, threaded=True)
+# socketio = SocketIO(app, threaded=True)
 
 # TODO
 calculateBiKiller = getattr(StockTradeDataJob(), 'load_stock_data')
@@ -323,13 +323,13 @@ def redirect():
     return parsed_html
 
 
-@socketio.on('request')
-def test_message(message):
-    key = message['key']
-    params = message['params']
-    request_id = message['requestId']
-    if key == 'stockDetail':
-        emit('response_' + request_id, socket_success(get_stock_detail(params)))
+# @socketio.on('request')
+# def test_message(message):
+#     key = message['key']
+#     params = message['params']
+#     request_id = message['requestId']
+#     if key == 'stockDetail':
+#         emit('response_' + request_id, socket_success(get_stock_detail(params)))
 
 
 if __name__ == '__main__':
@@ -337,4 +337,5 @@ if __name__ == '__main__':
     start_schedule()
     port = 5001
     print('server run at:' + str(port))
-    socketio.run(app, port=port)
+    # socketio.run(app, port=port)
+    app.run(port=port)
