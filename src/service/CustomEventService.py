@@ -39,7 +39,6 @@ class CustomEventService:
             result.append(item)
         return result
 
-
     @staticmethod
     def save_event_item(item):
         event_type = item['type']
@@ -50,7 +49,7 @@ class CustomEventService:
         model = {
             'event_id': event_id,
             "time": item['time'],
-            'title': item['title'],
+            'content': item['content'],
             "type": event_type,
             "url": item['url']
         }

@@ -370,7 +370,7 @@ def redirect():
 
 if __name__ == '__main__':
     # 启动任务调度
-    # start_schedule()
+    start_schedule()
     port = 5001
     print('server run at:' + str(port))
     # socketio.run(app, port=port)

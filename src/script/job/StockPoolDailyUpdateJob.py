@@ -36,3 +36,8 @@ class StockPoolDailyUpdateJob:
             task_id = task["id"]
             code = stock.get('code')
             loop.run_until_complete(self.asynchronize_update_stock_daily(task_id, code))
+
+
+if __name__ == '__main__':
+    stock_code = 'SH600392'
+    StockService.update_stock_pre_release(stock_code)
