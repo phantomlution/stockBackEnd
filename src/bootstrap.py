@@ -13,6 +13,7 @@ from src.script.extractor.centualBank import extractAllCentualBank
 import json
 from src.service.HtmlService import get_parsed_href_html, get_response
 from src.service.FinancialService import get_history_fragment_trade_data
+from src.service.CustomEventService import CustomEventService
 from src.script.worker.WorkScheduler import start_schedule
 
 mongo = StockService.getMongoInstance()
@@ -296,6 +297,41 @@ def get_estate_data():
     estate_document = mongo.stock.estate
 
     return success(list(estate_document.find({ "date": date }, { "_id": 0 })))
+
+
+@app.route('/event/custom/list', methods=['GET'])
+def get_custom_event_list():
+    return success(CustomEventService.get_custom_event_list())
+
+
+@app.route('/event/custom/save', methods=['POST'])
+def save_custom_event():
+    request_json = request.get_json()
+    event_name = str.strip(request_json['name'])
+    if len(event_name) == 0:
+        raise Exception('请填写事件名')
+
+    return success(CustomEventService.save_event(event_name))
+
+
+@app.route('/event/custom/item/list', methods=['GET'])
+def get_custom_event_item_list():
+    event_id = request.args.get('event_id')
+    return success(CustomEventService.get_custom_event_item_list(event_id))
+
+
+@app.route('/event/custom/item/save', methods=['POST'])
+def save_custom_event_item():
+    item = request.get_json()
+
+    event_type = item['type']
+    if event_type == 'stock' and len(item['stockCode']) != 8:
+        raise Exception('股票代码错误')
+    elif event_type == 'custom' and len(item['eventId']) == 0:
+        raise Exception('未关联事件')
+
+    CustomEventService.save_event_item(item)
+    return success()
 
 
 @app.route('/data/stat/country', methods=['GET'])

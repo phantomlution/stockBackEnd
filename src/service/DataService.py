@@ -261,8 +261,6 @@ class DataService(object):
 
         # 加载图片
         image_list = item.select(".zb_pic img")
-        if len(image_list) > 0:
-            print(item)
         for image in image_list:
             model['imageList'].append(image['src'])
 
