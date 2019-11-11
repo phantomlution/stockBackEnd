@@ -70,7 +70,11 @@ def run_continuously(interval=1):
 
 # 提供给外部引用
 def start_schedule():
-    schedule.every(30).minutes.do(update_news)
-    schedule.every(10).minutes.do(update_notification)
+    schedule.every(5).to(10).minutes.do(update_news)
+    schedule.every(5).to(10).minutes.do(update_notification)
 
     run_continuously(5 * 60)
+
+
+if __name__ == '__main__':
+    start_schedule()

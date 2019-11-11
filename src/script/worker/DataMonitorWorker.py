@@ -17,6 +17,7 @@ class DataMonitorWorker:
             model["raw"] = index_model
             NotificationService.add('cnn_fear_greed_index', model)
         except Exception as e:
+            print(e)
             NotificationService.fail(model['title'], e)
 
     def update_american_securities_yield(self):
@@ -43,6 +44,7 @@ class DataMonitorWorker:
             if len(content) > 0:
                 NotificationService.add('american_securities_yield', model)
         except Exception as e:
+            print(e)
             NotificationService.fail(model['title'], e)
 
     def update_central_bank_open_market_operation(self):
@@ -57,6 +59,7 @@ class DataMonitorWorker:
                 model["raw"] = operation
                 NotificationService.add('central_bank_open_market_operation', model)
         except Exception as e:
+            print(e)
             NotificationService.fail(model['title'], e)
 
     def update_lpr_biding_change(self):
@@ -70,8 +73,9 @@ class DataMonitorWorker:
             model["raw"] = biding
             NotificationService.add('lrp_biding', model)
         except Exception as e:
+            print(e)
             NotificationService.fail(model['title'], e)
 
 
 if __name__ == '__main__':
-    DataMonitorWorker().update_central_bank_open_market_operation()
+    DataMonitorWorker().update_cnn_fear_greed_index()

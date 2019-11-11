@@ -224,6 +224,50 @@ class DataService(object):
             "data": biding_map
         }
 
+    @staticmethod
+    def resolve_fx_live_item(item, date_time_str):
+        important = item.select_one(".zb_word .red_color_f") is not None
+        model = {
+            'macro': False,  # 是否是宏观数据
+            "isImportant": important,
+            "imageList": [],
+            "isTop": False,  # 是否置顶
+            "timestamp": date_obj_to_timestamp(parse_date_str(date_time_str, format_rule=full_time_format))
+        }
+
+        title_item = item.select_one(".zb_word")
+        if title_item is None:
+            # 经济数据
+            model['title'] = item.select_one(".zb_font span").text
+            model['macro'] = True
+
+            value_list = item.select('.nom_bg')
+            for value in value_list:
+                if '前值' in value.contents[0]:
+                    model['former'] = value.contents[1].text
+                elif '预期' in value.contents[0]:
+                    model['predict'] = value.contents[1].text
+                else:
+                    raise Exception('数据错误')
+            current_item = item.select_one(".zb_star")
+            if '实际值' not in current_item.text:
+                raise Exception('数据错误')
+            model['current'] = current_item.select_one("em").text
+        else:
+            model['title'] = str.strip(title_item.text)
+            href_item = title_item.select_one("a")
+            if href_item is not None:
+                model['url'] = href_item['href']
+
+        # 加载图片
+        image_list = item.select(".zb_pic img")
+        if len(image_list) > 0:
+            print(item)
+        for image in image_list:
+            model['imageList'].append(image['src'])
+
+        return model
+
     # 获取汇通网7*24数据
     @staticmethod
     def get_fx_live(date_str):
@@ -233,6 +277,7 @@ class DataService(object):
         parse_raw_html = get_parsed_href_html(url, raw_html)
         html = BeautifulSoup(parse_raw_html, 'html.parser')
         item_list = html.select(".body_zb_li")
+
         for item in item_list:
             date_item = item.select_one('.zb_time')
             if date_item is None:
@@ -240,49 +285,21 @@ class DataService(object):
             date_time_str = date_str + " " + str.strip(date_item.text)
             if '快讯' in date_time_str:
                 continue
-            important = item.select_one(".zb_word .red_color_f") is not None
-            model = {
-                'macro': False, # 是否是宏观数据
-                "isImportant": important,
-                "imageList": [],
-                "timestamp": date_obj_to_timestamp(parse_date_str(date_time_str, format_rule=full_time_format))
-            }
 
-            title_item = item.select_one(".zb_word")
-            if title_item is None:
-                # 经济数据
-                model['title'] = item.select_one(".zb_font span").text
-                model['macro'] = True
+            model = DataService.resolve_fx_live_item(item, date_time_str)
+            result.append(model)
 
-                image_list = item.select("img")
-                for image in image_list:
-                    model['imageList'].append({
-                        "name": image['title'],
-                        "src": image['src']
-                    })
-
-                value_list = item.select('.nom_bg')
-                for value in value_list:
-                    if '前值' in value.contents[0]:
-                        model['former'] = value.contents[1].text
-                    elif '预期' in value.contents[0]:
-                        model['predict'] = value.contents[1].text
-                    else:
-                        raise Exception('数据错误')
-                current_item = item.select_one(".zb_star")
-                if '实际值' not in current_item.text:
-                    raise Exception('数据错误')
-                model['current'] = current_item.select_one("em").text
-            else:
-                model['title'] = str.strip(title_item.text)
-                href_item = title_item.select_one("a")
-                if href_item is not None:
-                    model['url'] = href_item['href']
-
+        # 解析置顶数据项
+        top_item_list = html.select("#isTop li")
+        for top_item in top_item_list:
+            time_str = top_item.select_one(".fb_time").text
+            date_time_str = date_str + ' ' + time_str
+            model = DataService.resolve_fx_live_item(top_item, date_time_str)
+            model['isTop'] = True
             result.append(model)
 
         return result
 
 
 if __name__ == '__main__':
-    print(DataService().get_fx_live('2019-11-10'))
+    print(DataService().get_fx_live('2019-11-11'))

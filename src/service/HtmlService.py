@@ -7,6 +7,7 @@ from urllib import parse
 import json
 import re
 from src.utils.extractor import Extractor
+from requests.adapters import HTTPAdapter
 
 
 def extract_jsonp(response, jsonp):
@@ -14,7 +15,9 @@ def extract_jsonp(response, jsonp):
     return json.loads(content)
 
 
-session = requests.session()
+session = requests.Session()
+session.mount('http://', HTTPAdapter(max_retries=3))
+session.mount('https://', HTTPAdapter(max_retries=3))
 
 
 def get_response(url, headers=None, params=None, encoding=None, use_proxy=False):
@@ -26,13 +29,13 @@ def get_response(url, headers=None, params=None, encoding=None, use_proxy=False)
     else:
         proxy = None
     request_headers = {
-        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36'
     }
     if headers is not None:
         for header in headers:
             request_headers[header] = headers[header]
 
-    response = session.get(url, headers=request_headers, params=params, proxies=proxy)
+    response = session.get(url, headers=request_headers, params=params, proxies=proxy, timeout=5)
 
     result = {
         "response": ''
