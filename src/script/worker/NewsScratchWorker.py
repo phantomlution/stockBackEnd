@@ -401,5 +401,4 @@ class NewsScratchWorker:
 if __name__ == '__main__':
     # 重要的数据手动同步
     news_scratch_worker = NewsScratchWorker()
-    news_scratch_worker.get_cnbc_news()
     news_scratch_worker.get_financial_times_news()

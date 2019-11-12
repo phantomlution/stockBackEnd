@@ -1,5 +1,5 @@
 from src.service.StockService import StockService
-
+from bson import ObjectId
 client = StockService.getMongoInstance()
 
 custom_event_document = client.stock.custom_event
@@ -29,6 +29,22 @@ class CustomEventService:
         }
         result = custom_event_document.insert(model)
         return str(result)
+
+    @staticmethod
+    def get_custom_event(event_id):
+        event = custom_event_document.find_one({ "_id": ObjectId(event_id) })
+        if event is None:
+            raise Exception('该事件不存在')
+
+        if 'content' not in event:
+            event['content'] = ''
+
+        return {
+            "_id": str(event['_id']),
+            "name": event['name'],
+            "content": event['content'],
+            "item_list": CustomEventService.get_custom_event_item_list(event_id)
+        }
 
     @staticmethod
     def get_custom_event_item_list(event_id):

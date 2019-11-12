@@ -304,6 +304,13 @@ def get_custom_event_list():
     return success(CustomEventService.get_custom_event_list())
 
 
+@app.route('/event/custom', methods=['GET'])
+def get_custom_event():
+    event_id = request.args.get('event_id')
+
+    return success(CustomEventService.get_custom_event(event_id))
+
+
 @app.route('/event/custom/save', methods=['POST'])
 def save_custom_event():
     request_json = request.get_json()
