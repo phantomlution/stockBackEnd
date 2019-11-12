@@ -135,7 +135,7 @@ class NewsScratchWorker:
                             if 'type' in item and item['type'] == 'cnbcvideo':
                                 model['materialType'] = 'video'
 
-                            if 'promoImage' in item:
+                            if 'promoImage' in item and item['promoImage']:
                                 model['thumb'] = item['promoImage']['url']
 
                             url_path_list = model['url'].split('/')
@@ -400,5 +400,6 @@ class NewsScratchWorker:
 
 if __name__ == '__main__':
     # 重要的数据手动同步
-    NewsScratchWorker().get_cnbc_news()
-    NewsScratchWorker().get_financial_times_news()
+    news_scratch_worker = NewsScratchWorker()
+    news_scratch_worker.get_cnbc_news()
+    news_scratch_worker.get_financial_times_news()
