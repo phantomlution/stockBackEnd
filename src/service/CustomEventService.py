@@ -47,6 +47,12 @@ class CustomEventService:
         }
 
     @staticmethod
+    def update_custom_event(event):
+        if custom_event_document.find_one({ "name": event['name'], '_id': { "$ne": ObjectId(event['_id']) } }) is not None:
+            raise Exception('事件名称重复')
+        custom_event_document.update({ "_id": ObjectId(event['_id']) }, { '$set': { "name": event['name'], "content": event['content'] } })
+
+    @staticmethod
     def get_custom_event_item_list(event_id):
         result = []
         item_list = custom_event_item_document.find({ "event_id": event_id }).sort([('time', 1)])

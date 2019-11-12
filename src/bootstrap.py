@@ -311,6 +311,13 @@ def get_custom_event():
     return success(CustomEventService.get_custom_event(event_id))
 
 
+@app.route('/event/custom', methods=['PUT'])
+def update_custom_event():
+    model = request.get_json()
+    CustomEventService.update_custom_event(model)
+    return success()
+
+
 @app.route('/event/custom/save', methods=['POST'])
 def save_custom_event():
     request_json = request.get_json()
