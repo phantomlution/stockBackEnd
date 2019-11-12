@@ -13,7 +13,7 @@ class DataMonitorWorker:
         }
         try:
             index_model = DataService.get_cnn_fear_greed_index()
-            model["description"] = '最新指数为: ' + str(index_model['now']),
+            model["description"] = '最新指数为: ' + str(index_model['now'])
             model["raw"] = index_model
             NotificationService.add('cnn_fear_greed_index', model)
         except Exception as e:
@@ -54,7 +54,7 @@ class DataMonitorWorker:
         try:
             operation_list = DataService.get_latest_central_bank_open_market_operation()
             for operation in operation_list:
-                model["description"] = operation['html'],
+                model["description"] = operation['html']
                 model["html"] = True
                 model["raw"] = operation
                 NotificationService.add('central_bank_open_market_operation', model)

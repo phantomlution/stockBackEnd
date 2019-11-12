@@ -300,4 +300,4 @@ class DataService(object):
 
 
 if __name__ == '__main__':
-    print(DataService().get_fx_live('2019-11-11'))
+    print(DataService().get_latest_central_bank_open_market_operation())
