@@ -55,7 +55,7 @@ class CustomEventService:
     @staticmethod
     def get_custom_event_item_list(event_id):
         result = []
-        item_list = custom_event_item_document.find({ "event_id": event_id }).sort([('time', 1)])
+        item_list = custom_event_item_document.find({ "event_id": event_id }).sort([('time', -1)])
         for item in item_list:
             item['_id'] = str(item['_id'])
             result.append(item)
