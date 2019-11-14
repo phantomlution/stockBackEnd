@@ -291,7 +291,7 @@ class DataService(object):
         top_item_list = html.select("#isTop li")
         for top_item in top_item_list:
             time_str = top_item.select_one(".fb_time").text
-            date_time_str = date_str + ' ' + time_str
+            date_time_str = date_str + ' ' + str.strip(time_str)
             model = DataService.resolve_fx_live_item(top_item, date_time_str)
             model['isTop'] = True
             result.append(model)
@@ -300,4 +300,4 @@ class DataService(object):
 
 
 if __name__ == '__main__':
-    print(DataService().get_latest_central_bank_open_market_operation())
+    print(DataService().get_fx_live('2019-11-14'))
