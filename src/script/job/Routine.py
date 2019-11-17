@@ -13,6 +13,7 @@ from src.script.job.StockBondNoticeUpdateJob import StockBondNoticeUpdateJob
 from src.script.job.StockPoolDailyUpdateJob import StockPoolDailyUpdateJob
 from src.script.job.StockSubCompanyUpdateJob import StockSubCompanyUpdateJob
 from src.script.job.StockRestrictSellUpdateJob import StockRestrictSellUpdateJob
+from src.script.job.DatabaseBackUpJob import DatabaseBackUpJob
 from src.script.job.JobScheduler import JobScheduler
 
 
@@ -39,6 +40,7 @@ def get_daily_routine():
         'StockNoticeJob',
         "StockBondNoticeUpdateJob",  # 将债券发行数据和债券风险项同步到 基础信息中
         "StockPoolDailyUpdateJob",  # 同步股票的重大事项
+        'DatabaseBackUpJob',
         'StockTradeDataJob',
     ]
 
