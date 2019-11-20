@@ -1,8 +1,8 @@
 from src.script.worker.DataMonitorWorker import DataMonitorWorker
 from src.script.worker.NewsScratchWorker import NewsScratchWorker
+from src.script.worker.ZhihuWorker import ZhihuWorker
 from functools import wraps
 from src.service.NotificationService import NotificationService
-from src.utils.date import get_current_datetime_str
 import time
 import threading
 import schedule
@@ -11,6 +11,7 @@ import sys
 
 news_scratch_worker = NewsScratchWorker()
 data_monitor_worker = DataMonitorWorker()
+zhihu_worker = ZhihuWorker
 
 
 def schedule_monitor(func):
@@ -45,6 +46,11 @@ def update_notification():
     data_monitor_worker.update_lpr_biding_change()
 
 
+@schedule_monitor
+def user_update_track():
+    zhihu_worker.track_all_users()
+
+
 def run_continuously(interval=1):
 
     cease_continuous_run = threading.Event()
@@ -72,6 +78,7 @@ def run_continuously(interval=1):
 def start_schedule():
     schedule.every(5).to(10).minutes.do(update_news)
     schedule.every(5).to(10).minutes.do(update_notification)
+    schedule.every(5).to(10).minutes.do(user_update_track)
 
     run_continuously(5 * 60)
 
