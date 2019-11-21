@@ -42,12 +42,12 @@ class ZhihuWorker:
             item = entities_activity[item_id]
             model = {
                 "source": 'zhihu',
-                "id": 'zhihu_' + str(item_id),
                 "user_name": user_name_str,
                 "action_text": item['actionText'],
                 "schema": str(item['target']['schema']),
                 "target_id": str(item['target']['id'])
             }
+            model['id'] = model['source'] + '_' + model['target_id']
             schema = model['schema']
             if schema not in ['answer', 'pin', 'question']:
                 raise Exception('类型异常:{}'.format(schema))
@@ -63,7 +63,7 @@ class ZhihuWorker:
             NotificationService.add(model['source'], {
                 "title": '【知乎】关注更新',
                 "description": user_name_str + ' ' + model['action_text'],
-                "type": 'article',
+                "type": 'reader',
                 "raw": model
             })
 

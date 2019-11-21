@@ -11,7 +11,6 @@ import sys
 
 news_scratch_worker = NewsScratchWorker()
 data_monitor_worker = DataMonitorWorker()
-zhihu_worker = ZhihuWorker
 
 
 def schedule_monitor(func):
@@ -48,7 +47,8 @@ def update_notification():
 
 @schedule_monitor
 def user_update_track():
-    zhihu_worker.track_all_users()
+    print('started')
+    ZhihuWorker.track_all_users()
 
 
 def run_continuously(interval=1):
@@ -80,7 +80,7 @@ def start_schedule():
     schedule.every(5).to(10).minutes.do(update_notification)
     schedule.every(5).to(10).minutes.do(user_update_track)
 
-    run_continuously(5 * 60)
+    run_continuously(1 * 60)
 
 
 if __name__ == '__main__':
