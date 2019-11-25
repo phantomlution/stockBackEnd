@@ -49,11 +49,12 @@ class ZhihuWorker:
             }
             model['id'] = model['source'] + '_' + model['target_id']
             schema = model['schema']
-            if schema not in ['answer', 'pin', 'question']:
+            if schema not in ['answer', 'pin', 'question', 'article']:
+                print(item)
                 raise Exception('类型异常:{}'.format(schema))
 
             target = entities_data[model['schema'] + 's'][model['target_id']]
-            if schema == 'answer' or schema == 'pin':
+            if schema == 'answer' or schema == 'pin' or schema == 'article':
                 model['content'] = ZhihuWorker.resolve_content(target['content'])
 
             if 'question' in target:

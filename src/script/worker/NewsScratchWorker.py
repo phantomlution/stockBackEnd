@@ -142,6 +142,10 @@ class NewsScratchWorker:
                             year_index = 3
                             if url_path_list[year_index] == 'video':
                                 year_index += 1
+                            try:
+                                int(url_path_list[year_index])
+                            except:
+                                continue
                             model['publish_date'] = url_path_list[year_index] + '-' + url_path_list[year_index + 1] + '-' + url_path_list[year_index + 2]
 
                             result.append(model)
@@ -402,3 +406,4 @@ if __name__ == '__main__':
     # 重要的数据手动同步
     news_scratch_worker = NewsScratchWorker()
     news_scratch_worker.get_financial_times_news()
+    # news_scratch_worker.get_cnbc_news()
