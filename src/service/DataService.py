@@ -181,7 +181,7 @@ class DataService(object):
         result = []
         for record in records:
             if '公开市场' not in record['title']:
-                raise Exception('数据异常')
+                continue
 
             content_url = get_absolute_url_path(url, record['draftPath'])
             content_raw_html = get_response(content_url)

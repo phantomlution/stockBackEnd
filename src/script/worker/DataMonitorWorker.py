@@ -78,4 +78,4 @@ class DataMonitorWorker:
 
 
 if __name__ == '__main__':
-    DataMonitorWorker().update_cnn_fear_greed_index()
+    DataMonitorWorker().update_central_bank_open_market_operation()
