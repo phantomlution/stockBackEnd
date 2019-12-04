@@ -2,3 +2,4 @@ openpyxl==2.5.14
 tushare
 schedule
 requests
+flask

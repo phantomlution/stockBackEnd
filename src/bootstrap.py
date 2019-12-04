@@ -15,10 +15,12 @@ from src.service.HtmlService import get_parsed_href_html, get_response
 from src.service.FinancialService import get_history_fragment_trade_data
 from src.service.CustomEventService import CustomEventService
 from src.script.worker.WorkScheduler import start_schedule
+from src.routes.Data import data_api
 
 mongo = StockService.getMongoInstance()
 
 app = Flask(__name__)
+app.register_blueprint(data_api)
 app.config['SECRET_KEY'] = 'secret!'
 # socketio = SocketIO(app, threaded=True)
 

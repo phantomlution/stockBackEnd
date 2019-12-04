@@ -352,6 +352,37 @@ class StockService:
         data['date'] = get_current_date_str()
         return data
 
+    # 获取概念板块资金流向
+    @staticmethod
+    def get_concept_block():
+        url = 'http://51.push2.eastmoney.com/api/qt/clist/get'
+        params = {
+            "cb": "jQuery112407684244893231433_1575458086176",
+            "pn": 1,
+            "pz": 20,
+            "po": 1,
+            "np": 1,
+            "fltt": 2,
+            "invt": 2,
+            "fid": "f3",
+            "fs": "m:90 t:3",
+            "fields": "f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f12,f13,f14,f15,f16,f17,f18,f20,f21,f23,f24,f25,f26,f22,f33,f11,f62,f128,f136,f115,f152,f124,f107,f104,f105,f140,f141,f207,f222"
+        }
+
+        response = get_response(url, params=params)
+        response_json = extract_jsonp(response, params['cb'])
+        concept_list = []
+        for item in response_json['data']['diff']:
+            concept_list.append({
+                "name": item['f14'],
+                "url": "http://quote.eastmoney.com/web/" + item["f12"] + ".html",
+                "percent": item['f3'],
+                "rise": item['f104'],
+                "fall": item['f105']
+            })
+
+        return concept_list
+
 
 if __name__ == '__main__':
     stock_code = 'SH600738'
