@@ -1,12 +1,21 @@
 from src.service.StockService import StockService
 from src.utils.date import get_current_datetime_str
 import uuid
+from bson.objectid import ObjectId
 
 client = StockService.getMongoInstance()
 notification_document = client.stock.notification
 
 
 class NotificationService:
+
+    @staticmethod
+    def get_unread_notification():
+        return notification_document.find({"has_read": False})
+
+    @staticmethod
+    def update_read_status(_id, status=True):
+        return notification_document.update({"_id": ObjectId(_id)}, {'$set': {"has_read": status}})
 
     @staticmethod
     def add(key, model):
