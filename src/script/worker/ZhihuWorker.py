@@ -57,9 +57,9 @@ class ZhihuWorker:
             if schema == 'answer' or schema == 'pin' or schema == 'article':
                 model['content'] = ZhihuWorker.resolve_content(target['content'])
 
-            if 'question' in target:
-                model['title'] = target['question']['title']
-                model['title_url'] = "https://www.zhihu.com/question/" + str(target['question']['id'])
+            if schema == 'question':
+                model['title'] = target['title']
+                model['title_url'] = target['url']
 
             NotificationService.add(model['source'], {
                 "title": '【知乎】关注更新',

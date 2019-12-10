@@ -241,6 +241,7 @@ class StockService:
             'min': data['f45'],
             "yesterday": data['f60'],
             "volume": data['f47'],
+            "amount": data['f48'],
             'turnOverRate': data['f168'],
             "biding": []
         }
@@ -386,5 +387,5 @@ class StockService:
 
 if __name__ == '__main__':
     stock_code = 'SH600738'
-    result = StockService.update_stock_pre_release(stock_code)
+    result = StockService.get_stock_biding(stock_code)
     print(result)
