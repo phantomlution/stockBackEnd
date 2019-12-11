@@ -7,6 +7,7 @@ mongo_instance = MongoClient('mongodb://localhost:27017')
 
 base_document = mongo_instance.stock.base
 notice_document = mongo_instance.stock.notice
+history_document = mongo_instance.stock.history
 stock_pool_document = mongo_instance.stock.stock_pool
 chinese_central_bank_base = 'http://www.chinamoney.com.cn'
 ten_thousand = 10000
@@ -383,6 +384,10 @@ class StockService:
             })
 
         return concept_list
+
+    @staticmethod
+    def get_history_data(code):
+        return history_document.find_one({"code": code}, {"_id": 0})
 
 
 if __name__ == '__main__':

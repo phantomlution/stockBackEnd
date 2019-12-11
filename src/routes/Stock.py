@@ -20,7 +20,7 @@ def detail():
     code = request.args.get('code')
     return {
         "base": StockService.get_stock_base(code),
-        "data": history_document.find_one({ "code": code }, {"_id": 0})
+        "data": StockService.get_history_data(code)
     }
 
 

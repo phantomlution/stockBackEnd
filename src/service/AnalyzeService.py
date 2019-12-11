@@ -4,6 +4,7 @@
 from src.service.StockService import StockService
 from src.assets.DataProvider import DataProvider
 from src.utils.FileUtils import generate_static_dir_file
+from src.service.FinancialService import get_history_fragment_trade_data
 import os
 import json
 import math
@@ -178,6 +179,46 @@ class AnalyzeService:
 
         return result
 
+    @staticmethod
+    def custom_analyze():
+        code = 'SH603098'
+        # code = 'SH603101'
+        # code = 'SZ002927'
+        data = StockService.get_history_data(code)['data']
+        data.reverse()
+        data = data[:135]
+        data.reverse()
+        point_list = []
+        for item in data:
+            date = item[0]
+            fragment_data = get_history_fragment_trade_data(code[2:], date)
+            fragment_data = sorted(fragment_data, key=lambda fragment_item: fragment_item["amount"], reverse=True)
+            first_item = fragment_data[0]
+            second_item = fragment_data[1]
+            first_amount = first_item['amount']
+            second_amount = second_item['amount']
+            point_list.append({
+                "date": date,
+                "data": fragment_data
+            })
+            ratio = round(first_amount / second_amount, 1)
+            #print('{code} @ {date} @ {first},{second} @ {ratio} @ {type}'.format(code=code, date=date, first=first_amount, second=second_amount, ratio=ratio, type=first_item['type']))
+        for idx, item in enumerate(point_list):
+            first_item = item['data'][0]
+            data_count = 5
+            if idx < data_count:
+                continue
+            total = 0
+            point_item_list = point_list[idx - data_count:idx - 1]
+            for point_item in point_item_list:
+                total += point_item['data'][0]['amount']
+            average = total / data_count
+            ratio = round(first_item['amount'] / average, 1)
+            if ratio > 5:
+                print('{date} @ {ratio}'.format(date=item['date'],  ratio=ratio))
+
+
+
 
 
 
@@ -185,4 +226,5 @@ class AnalyzeService:
 
 
 if __name__ == '__main__':
-    AnalyzeService.get_price_break_point()
+    # AnalyzeService.get_price_break_point()
+    AnalyzeService.custom_analyze()
