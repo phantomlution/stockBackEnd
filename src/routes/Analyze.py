@@ -22,3 +22,10 @@ def get_history_fragment_trade():
 @flask_response
 def get_restrict_sell_date():
     return AnalyzeService.analyze_restrict_date()
+
+
+# 临时分析数据
+@analyze_api.route('/custom', methods=['GET'])
+@flask_response
+def get_temporary_analyze():
+    return AnalyzeService.get_stunt_point_list()
