@@ -214,7 +214,9 @@ class AnalyzeService:
             if idx < data_count:
                 continue
             total = 0
-            point_item_list = point_list[idx - data_count:idx - 1]
+            point_item_list = point_list[idx - data_count:idx]
+            if len(point_item_list) != data_count:
+                raise Exception('数据不匹配')
             for point_item in point_item_list:
                 total += point_item['data'][0]['amount']
             average = total / data_count
@@ -222,6 +224,9 @@ class AnalyzeService:
             if ratio > 5 and not item['ceil'] and not point_list[idx - 1]['ceil']:
                 result['point'].append({
                     "date": item['date'],
+                    'time': first_item['time'],
+                    "amount": first_item['amount'],
+                    "type": first_item['type'],
                     "ratio": ratio
                 })
         return result
@@ -240,6 +245,12 @@ class AnalyzeService:
     @staticmethod
     def custom_analyze():
         stock_list = DataProvider().get_stock_list()
+        # stock_list = [
+        #     {
+        #         "code": 'SH603101',
+        #         "name": 'custom'
+        #     }
+        # ]
         # code = 'SH603098'
         # code = 'SH603101'
         # code = 'SZ002927'
