@@ -4,7 +4,7 @@
 from src.service.StockService import StockService
 from src.assets.DataProvider import DataProvider
 from src.utils.FileUtils import generate_static_dir_file
-from src.service.FinancialService import get_history_fragment_trade_data
+
 from src.utils.StringUtils import list_to_str
 import os
 import json
@@ -182,56 +182,6 @@ class AnalyzeService:
         return result
 
     @staticmethod
-    def get_stunt_point(code):
-        result = {
-            "code": code,
-            'skip': False,
-            "point": []
-        }
-
-        data = StockService.get_history_data(code)['data']
-        data.reverse()
-        data = data[:135]
-        data.reverse()
-        point_list = []
-        for item in data:
-            date = item[0]
-            close_percent = item[8]
-            fragment_data = get_history_fragment_trade_data(code[2:], date)
-            if fragment_data is None:
-                result['skip'] = True
-                return result
-            fragment_data = sorted(fragment_data, key=lambda fragment_item: fragment_item["amount"], reverse=True)
-            point_list.append({
-                "date": date,
-                "data": fragment_data,
-                "ceil": True if close_percent >= 9.9 else False
-            })
-
-        for idx, item in enumerate(point_list):
-            first_item = item['data'][0]
-            data_count = 5
-            if idx < data_count:
-                continue
-            total = 0
-            point_item_list = point_list[idx - data_count:idx]
-            if len(point_item_list) != data_count:
-                raise Exception('数据不匹配')
-            for point_item in point_item_list:
-                total += point_item['data'][0]['amount']
-            average = total / data_count
-            ratio = round(first_item['amount'] / average, 1)
-            if ratio > 5 and not item['ceil'] and not point_list[idx - 1]['ceil']:
-                result['point'].append({
-                    "date": item['date'],
-                    'time': first_item['time'],
-                    "amount": first_item['amount'],
-                    "type": first_item['type'],
-                    "ratio": ratio
-                })
-        return result
-
-    @staticmethod
     def get_stunt_point_list():
         result = []
         stunt_list = stunt_document.find({}, { "_id": 0 })
@@ -242,29 +192,4 @@ class AnalyzeService:
 
         return result
 
-    @staticmethod
-    def custom_analyze():
-        stock_list = DataProvider().get_stock_list()
-        # stock_list = [
-        #     {
-        #         "code": 'SH603101',
-        #         "name": 'custom'
-        #     }
-        # ]
-        # code = 'SH603098'
-        # code = 'SH603101'
-        # code = 'SZ002927'
-        finish = 0
-        for stock in stock_list:
-            code = stock['code']
-            if stunt_document.find_one({ "code": code }) is None:
-                result = AnalyzeService.get_stunt_point(code)
-                result['name'] = stock['name']
-                stunt_document.save(result)
-            finish += 1
-            print('progress:{}/{}'.format(finish, len(stock_list)))
 
-
-if __name__ == '__main__':
-    # AnalyzeService.get_price_break_point()
-    AnalyzeService.custom_analyze()

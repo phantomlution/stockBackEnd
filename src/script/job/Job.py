@@ -10,7 +10,7 @@ import math
 
 
 class Job:
-    def __init__(self, name):
+    def __init__(self, name, print_interval=60):
         self.name = name
         self.id = str(uuid.uuid4())
         self.task_list = []
@@ -21,7 +21,7 @@ class Job:
         self.execute_duration = 0
         self.done_func = None
         self.timer = None
-        self.progress_timer_interval = 60  # 打印进度间隔
+        self.progress_timer_interval = print_interval  # 打印进度间隔
 
     # 生成任务列表
     def add(self, data):
