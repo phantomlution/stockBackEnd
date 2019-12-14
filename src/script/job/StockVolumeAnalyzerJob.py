@@ -67,23 +67,19 @@ class StockVolumeAnalyzerJob:
                 })
         return result
 
-    async def asynchronize_analyze_stock_volume(self, task_id, stock):
-        code = stock['code']
-        if stunt_document.find_one({"code": code}) is None:
-            result = self.get_stunt_point(code)
-            result['name'] = stock['name']
-            stunt_document.save(result)
-        self.job.success(task_id)
-
     def run(self, end_func=None):
         self.job.start(self.start, end_func)
 
     def start(self):
-        loop = asyncio.get_event_loop()
         for task in self.job.task_list:
             stock = task['raw']
             task_id = task["id"]
-            loop.run_until_complete(self.asynchronize_analyze_stock_volume(task_id, stock))
+            code = stock['code']
+            if stunt_document.find_one({"code": code}) is None:
+                result = self.get_stunt_point(code)
+                result['name'] = stock['name']
+                stunt_document.save(result)
+            self.job.success(task_id)
 
 
 if __name__ == '__main__':

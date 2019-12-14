@@ -186,8 +186,13 @@ class AnalyzeService:
         result = []
         stunt_list = stunt_document.find({}, { "_id": 0 })
         for stunt in stunt_list:
-            if len(stunt['point']) > 0:
-                stunt['desc'] = list_to_str(stunt['point'])
+            filter_stunt = []
+            original_stunt = stunt['point']
+            for item in original_stunt:
+                if '15:00' not in item['time']:
+                    filter_stunt.append(item)
+            if len(filter_stunt) > 0:
+                stunt['list'] = filter_stunt
                 result.append(stunt)
 
         return result
