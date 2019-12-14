@@ -189,8 +189,13 @@ class AnalyzeService:
             filter_stunt = []
             original_stunt = stunt['point']
             for item in original_stunt:
-                if '15:00' not in item['time']:
-                    filter_stunt.append(item)
+                if '15:00' in item['time']:
+                    continue
+                if item['price'] / item['yesterday'] > 1.05:
+                    continue
+                if item['price'] / item['yesterday'] < 0.95:
+                    continue
+                filter_stunt.append(item)
             if len(filter_stunt) > 0:
                 stunt['list'] = filter_stunt
                 result.append(stunt)

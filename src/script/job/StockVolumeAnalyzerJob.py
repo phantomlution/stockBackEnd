@@ -30,9 +30,10 @@ class StockVolumeAnalyzerJob:
         data = data[:135]
         data.reverse()
         point_list = []
-        for item in data:
-            date = item[0]
-            close_percent = item[8]
+        for data_item in data:
+            date = data_item[0]
+            close_percent = data_item[8]
+            yesterday_close = round(data_item[2] / (1 + close_percent / 100), 2)
             fragment_data = get_history_fragment_trade_data(code[2:], date)
             if fragment_data is None:
                 result['skip'] = True
@@ -41,6 +42,7 @@ class StockVolumeAnalyzerJob:
             point_list.append({
                 "date": date,
                 "data": fragment_data,
+                'yesterday': yesterday_close,
                 "ceil": True if close_percent >= 9.9 else False
             })
 
@@ -63,6 +65,8 @@ class StockVolumeAnalyzerJob:
                     'time': first_item['time'],
                     "amount": first_item['amount'],
                     "type": first_item['type'],
+                    "price": first_item['price'],
+                    'yesterday': item['yesterday'],
                     "ratio": ratio
                 })
         return result
@@ -82,5 +86,41 @@ class StockVolumeAnalyzerJob:
             self.job.success(task_id)
 
 
+def temporary_patch():
+    stock_list = DataProvider().get_stock_list()
+    history_document = client.stock.history
+    count = 0
+    for stock in stock_list:
+        count += 1
+        print(count)
+        code = stock['code']
+        stunt_item = stunt_document.find_one({"code": code})
+        if stunt_item is None:
+            continue
+        if 'patched' in stunt_item and stunt_item['patched']:
+            continue
+        if stunt_item is not None and len(stunt_item['point']) > 0:
+            history_data = history_document.find_one({"code": code})['data']
+            for point_item in stunt_item['point']:
+                date = point_item['date']
+                _time = point_item['time']
+                result_list = list(filter(lambda item: item[0] == date, history_data))
+                if len(result_list) != 1:
+                    raise Exception('error')
+                data_item = result_list[0]
+                close_percent = data_item[8]
+                yesterday_close = round(data_item[2] / (1 + close_percent / 100), 2)
+                point_item['yesterday'] = yesterday_close
+                fragment_data = get_history_fragment_trade_data(code[2:], date)
+                fragment_data_filter = list(filter(lambda item: item['time'] == _time and item['amount'] == point_item['amount'], fragment_data))
+                if len(fragment_data_filter) != 1:
+                    raise Exception('error2')
+                fragment_item = fragment_data_filter[0]
+                point_item['price'] = fragment_item['price']
+        stunt_item['patched'] = True
+        stunt_document.update({"_id": stunt_item['_id']}, stunt_item)
+
+
 if __name__ == '__main__':
     StockVolumeAnalyzerJob().run()
+    # temporary_patch()
