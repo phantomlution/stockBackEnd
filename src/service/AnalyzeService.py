@@ -4,6 +4,7 @@
 from src.service.StockService import StockService
 from src.assets.DataProvider import DataProvider
 from src.utils.FileUtils import generate_static_dir_file
+from src.utils.date import getCurrentTimestamp
 
 from src.utils.StringUtils import list_to_str
 import os
@@ -202,4 +203,57 @@ class AnalyzeService:
 
         return result
 
+    @staticmethod
+    def get_low_amount_restrict_sell():
+        stock_list = DataProvider().get_stock_list()
 
+        current = getCurrentTimestamp() + 1 * 24 * 60 * 60 * 1000
+        latest = current - 90 * 24 * 60 * 60 * 1000
+
+        result = []
+        count = 0
+        for stock in stock_list:
+            code = stock['code']
+            count += 1
+            print(count)
+
+            base = StockService.get_stock_base(code)
+            if 'restrict_sell_list' not in base:
+                continue
+            sell_list = base['restrict_sell_list']
+            filter_sell_list = list(filter(lambda item: current >= item['timestamp'] >= latest, sell_list))
+            if len(filter_sell_list) == 0:
+                continue
+            history_data = StockService.get_history_data(code)['data']
+            point_list = []
+            for sell_item in filter_sell_list:
+                # 计算近30日平均成交量
+                early_history_data = list(filter(lambda item: item[0] <= sell_item['date'], history_data))
+                if len(early_history_data) < 30:
+                    raise Exception('error')
+
+                total = 0
+                specified_range = early_history_data[-30:]
+                for data in specified_range:
+                    amount = data[6]
+                    total += amount
+                average = total / len(specified_range)
+                average_in_million = average / 1000 / 1000
+                if average_in_million < 20:
+                    point_list.append({
+                        "date": sell_item['date'],
+                        "amount_in_M": round(average_in_million, 2)
+                    })
+
+            if len(point_list) > 0:
+                result.append({
+                    "code": stock['code'],
+                    "name": stock['name'],
+                    'list': point_list
+                })
+
+        return result
+
+
+if __name__ == '__main__':
+    print(AnalyzeService.get_low_amount_restrict_sell())

@@ -28,4 +28,5 @@ def get_restrict_sell_date():
 @analyze_api.route('/custom', methods=['GET'])
 @flask_response
 def get_temporary_analyze():
-    return AnalyzeService.get_stunt_point_list()
+    # return AnalyzeService.get_stunt_point_list()
+    return AnalyzeService.get_low_amount_restrict_sell()

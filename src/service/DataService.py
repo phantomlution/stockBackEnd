@@ -2,8 +2,9 @@
     部分数据接口对接
 '''
 from src.utils.sessions import FuturesSession
-from src.service.HtmlService import get_response, get_absolute_url_path, get_parsed_href_html
+from src.service.HtmlService import get_response, get_absolute_url_path, get_parsed_href_html, extract_jsonp
 from src.utils import date
+import datetime
 import json
 from src.utils.date import get_english_month, get_ambiguous_date, full_time_format, parse_date_str, date_obj_to_timestamp
 from bs4 import BeautifulSoup
@@ -294,6 +295,66 @@ class DataService(object):
             date_time_str = date_str + ' ' + str.strip(time_str)
             model = DataService.resolve_fx_live_item(top_item, date_time_str)
             model['isTop'] = True
+            result.append(model)
+
+        return result
+
+    # 提取概念板块所有的数据
+    @staticmethod
+    def get_concept_block_item_list():
+        url = 'https://data.eastmoney.com/bkzj/gn.html'
+        raw_html = get_response(url, encoding='gbk')
+        parsed_raw_html = get_parsed_href_html(url, raw_html)
+        html = BeautifulSoup(parsed_raw_html, 'html.parser')
+        container = html.select_one("#pop-cont2")
+        if container is None:
+            raise Exception('找不到对应的板块')
+        item_list = container.select("a")
+        result = []
+        for item in item_list:
+            result.append({
+                "name": item.text,
+                "code": item['href'].split('/')[-1].split('.')[0]
+            })
+
+        return result
+
+    @staticmethod
+    def get_concept_block_history(code):
+        url = 'http://push2his.eastmoney.com/api/qt/stock/kline/get'
+        params = {
+            'cb': 'jQuery172002253503294348569_1576387811235',
+            'secid': '90.' + code,
+            'fields1': 'f1,f2,f3,f4,f5',
+            "fields2": "f51,f52,f53,f54,f55,f56,f57,f58",
+            "klt": 101,
+            "fqt": 0,
+            "beg": "20190101",
+            "end": str(datetime.datetime.now().year + 1) + '0101',
+            "_": 1576388830009
+        }
+        jsonp_response = get_response(url, params=params)
+        response_json = extract_jsonp(jsonp_response, params['cb'])
+        data_list = response_json['data']['klines']
+
+        result = []
+        for idx, item in enumerate(data_list):
+            if idx == 0:
+                continue
+            last_item = data_list[idx - 1].split(',')
+            today_item = data_list[idx].split(',')
+            yesterday_close = float(last_item[2])
+            today_close = float(today_item[2])
+            model = {
+                "date": today_item[0],
+                "open": float(today_item[1]),
+                "close": today_close,
+                "max": float(today_item[3]),
+                "min": float(today_item[4]),
+                "volume": float(today_item[5]),
+                "amount": float(today_item[6]),
+                "percent": round((today_close - yesterday_close) / yesterday_close * 100, 2)
+            }
             result.append(model)
 
         return result

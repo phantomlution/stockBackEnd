@@ -122,5 +122,5 @@ def temporary_patch():
 
 
 if __name__ == '__main__':
-    StockVolumeAnalyzerJob().run()
-    # temporary_patch()
+    # StockVolumeAnalyzerJob().run()
+    temporary_patch()
