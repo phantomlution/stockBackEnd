@@ -30,3 +30,9 @@ def get_restrict_sell_date():
 def get_temporary_analyze():
     # return AnalyzeService.get_stunt_point_list()
     return AnalyzeService.get_low_amount_restrict_sell()
+
+
+@analyze_api.route('/concept/block/trend')
+@flask_response
+def get_concept_block_trend():
+    return AnalyzeService.get_concept_block_ranking()

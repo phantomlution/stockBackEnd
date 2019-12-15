@@ -5,8 +5,6 @@ from src.service.StockService import StockService
 from src.assets.DataProvider import DataProvider
 from src.utils.FileUtils import generate_static_dir_file
 from src.utils.date import getCurrentTimestamp
-
-from src.utils.StringUtils import list_to_str
 import os
 import json
 import math
@@ -15,6 +13,7 @@ client = StockService.getMongoInstance()
 base_document = client.stock.base
 history_document = client.stock.history
 stunt_document = client.stock.stunt
+concept_block_ranking_document = client.stock.concept_block_ranking
 
 
 def generate_analyze_file(file_name, content):
@@ -253,6 +252,11 @@ class AnalyzeService:
                 })
 
         return result
+
+    @staticmethod
+    def get_concept_block_ranking():
+        result = concept_block_ranking_document.find({}, {"_id": 0})
+        return list(result)
 
 
 if __name__ == '__main__':
