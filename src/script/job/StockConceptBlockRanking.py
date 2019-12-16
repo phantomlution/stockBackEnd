@@ -23,6 +23,7 @@ class StockConceptBlockRanking:
         for concept_block in concept_block_list:
             concept_code = concept_block['code']
             concept_name = concept_block['name']
+            concept_url = concept_block['url']
             history_data = DataService.get_concept_block_history(concept_code)
             for history_data_item in history_data:
                 date_str = history_data_item['date']
@@ -30,6 +31,7 @@ class StockConceptBlockRanking:
                     data_map[date_str] = []
                 history_data_item['name'] = concept_name
                 history_data_item['code'] = concept_code
+                history_data_item["url"] = concept_url
                 data_map[date_str].append(history_data_item)
         result = []
         for date in data_map:
@@ -47,26 +49,10 @@ class StockConceptBlockRanking:
             # 获取概念板块
             concept_block_list = DataService.get_concept_block_item_list()
 
-            first_round_data = self.get_concept_block_data(concept_block_list)
-
-            # 为了对齐排行榜顺序，重新筛选有效的概念板块
-            new_concept_block_list = []
-            for item in first_round_data[0]['ranking']:
-                new_concept_block_list.append({
-                    "code": item['code'],
-                    "name": item['name']
-                })
-
-            result = self.get_concept_block_data(new_concept_block_list)
+            result = self.get_concept_block_data(concept_block_list)
 
             concept_block_ranking_document.drop()
             for ranking_item in result:
-                ranking_length = len(ranking_item['ranking'])
-                concept_block_list_length = len(new_concept_block_list)
-                if ranking_length != concept_block_list_length:
-                    print('{}/{}'.format(ranking_length, concept_block_list_length))
-                    if concept_block_list_length - ranking_length > 1:
-                        raise Exception('长度不一致')
                 concept_block_ranking_document.save(ranking_item)
             task_id = task["id"]
             self.job.success(task_id)

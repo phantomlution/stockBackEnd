@@ -14,6 +14,6 @@ def flask_response(func):
         except Exception as e:
             return jsonify({
                 "code": '400',
-                "message": e
+                "message": str(e)
             })
     return response

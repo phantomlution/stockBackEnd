@@ -13,6 +13,7 @@ mongo = StockService.getMongoInstance()
 sync_document = mongo.stock.sync
 estate_document = mongo.stock.estate
 huitong_document = mongo.stock.huitong
+concept_block_ranking_document = mongo.stock.concept_block_ranking
 
 
 @data_api.route("/block/concept")
@@ -20,6 +21,17 @@ huitong_document = mongo.stock.huitong
 # 获取概念板块数据
 def get_concept_block_data():
     return StockService.get_concept_block()
+
+
+@data_api.route('/block/concept/ranking')
+@flask_response
+# 概念板块每日排行榜
+def get_concept_block_ranking():
+    date = request.args.get('date')
+    ranking_item = concept_block_ranking_document.find_one({"date": date})
+    if ranking_item is None:
+        raise Exception('没有对应的数据')
+    return ranking_item['ranking']
 
 
 @data_api.route('/centralBank', methods=['GET'])

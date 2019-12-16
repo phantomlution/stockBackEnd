@@ -302,7 +302,7 @@ class DataService(object):
     # 提取概念板块所有的数据
     @staticmethod
     def get_concept_block_item_list():
-        url = 'https://data.eastmoney.com/bkzj/gn.html'
+        url = 'http://data.eastmoney.com/bkzj/gn.html'
         raw_html = get_response(url, encoding='gbk')
         parsed_raw_html = get_parsed_href_html(url, raw_html)
         html = BeautifulSoup(parsed_raw_html, 'html.parser')
@@ -314,6 +314,7 @@ class DataService(object):
         for item in item_list:
             result.append({
                 "name": item.text,
+                "url": item['href'],
                 "code": item['href'].split('/')[-1].split('.')[0]
             })
 
