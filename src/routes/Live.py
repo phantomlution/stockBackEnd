@@ -11,5 +11,4 @@ live_api = Blueprint('live_api', __name__, url_prefix='/live')
 @flask_response
 def get_fx_live():
     date_str = request.args.get('date')
-    date_str = '2019-12-13'
     return DataService.get_fx_live(date_str)
