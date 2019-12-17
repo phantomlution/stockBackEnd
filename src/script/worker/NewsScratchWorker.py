@@ -125,10 +125,11 @@ class NewsScratchWorker:
 
                             if 'section' in item:
                                 section = item['section']
-                                if 'eyebrow' in section:
-                                    model['section'] = section['eyebrow']
-                                elif 'tagName' in section:
-                                    model['section'] = section['tagName']
+                                if section is not None:
+                                    if 'eyebrow' in section:
+                                        model['section'] = section['eyebrow']
+                                    elif 'tagName' in section:
+                                        model['section'] = section['tagName']
 
                             if 'premium' in item and item['premium']:
                                 model['premium'] = True
@@ -405,5 +406,7 @@ class NewsScratchWorker:
 if __name__ == '__main__':
     # 重要的数据手动同步
     news_scratch_worker = NewsScratchWorker()
-    news_scratch_worker.get_financial_times_news()
+    #news_scratch_worker.get_financial_times_news()
     # news_scratch_worker.get_cnbc_news()
+    news_scratch_worker.get_cnbc_news()
+    # news_scratch_worker.get_sina_financial_news()
