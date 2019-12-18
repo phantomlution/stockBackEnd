@@ -17,6 +17,7 @@ client = StockService.getMongoInstance()
 sync_document = client.stock.sync
 bond_document = client.stock.bond
 
+
 class BondDataJob:
 
     def __init__(self):
@@ -257,6 +258,7 @@ class BondDataJob:
                 self.sync_data(split_rage)
                 self.job.success(task_id)
             except Exception as e:
+                print(e)
                 self.job.fail(task_id, e)
 
 

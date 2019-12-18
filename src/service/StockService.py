@@ -28,15 +28,14 @@ class StockService:
         variables = get_html_variable(raw_html, 'zdgzData')
         result = []
 
-        if variables is None:
-            raise Exception('没有重点关注信息')
-        for variable in variables:
-            if 'sjlx' not in variable:
-                raise Exception('字段变更')
-            if variable['sjlx'] == '预约披露日':
-                result.append(variable)
-            elif variable['sjlx'] == '限售解禁日':
-                result.append(variable)
+        if variables is not None:
+            for variable in variables:
+                if 'sjlx' not in variable:
+                    raise Exception('字段变更')
+                if variable['sjlx'] == '预约披露日':
+                    result.append(variable)
+                elif variable['sjlx'] == '限售解禁日':
+                    result.append(variable)
 
         base_document.update({"symbol": code}, {"$set": {"pre_release_list": result }}, True)
 
