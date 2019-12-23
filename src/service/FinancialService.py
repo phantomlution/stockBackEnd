@@ -1,7 +1,6 @@
 import tushare
 import json
 
-
 tushare_token = 'bcbaeb905d1633b6a8c84c837699cdacbefcfe713d07f42fcbe0e694'
 
 
@@ -16,3 +15,12 @@ def get_history_fragment_trade_data(code, date):
         return None
     return json.loads(data_frame.to_json(orient="records"))
 
+
+# 获取实时分时数据
+def get_real_time_trade_data(code):
+    try:
+        data_frame = tushare.get_today_ticks(code)
+    except Exception as e:
+        print(e)
+        return None
+    return json.loads(data_frame.to_json(orient='records'))

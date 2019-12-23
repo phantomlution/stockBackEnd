@@ -31,6 +31,16 @@ def get_stock_base():
     return StockService.get_stock_base(code)
 
 
+@stock_api.route('/trade/data')
+@flask_response
+# 获取指定交易日的交易数据
+def get_trade_data():
+    date = request.args.get('date')
+    code = request.args.get('code')
+
+    return StockService.get_trade_data(code, date)
+
+
 @stock_api.route('/list')
 @flask_response
 def get_stock_list():
