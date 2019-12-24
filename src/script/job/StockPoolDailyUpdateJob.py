@@ -39,5 +39,5 @@ class StockPoolDailyUpdateJob:
 
 
 if __name__ == '__main__':
-    stock_code = 'SZ002939'
+    stock_code = 'SH600747'
     StockService.update_stock_pre_release(stock_code)

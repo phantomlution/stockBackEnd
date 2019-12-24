@@ -90,11 +90,11 @@ class DataMonitorWorker:
     def update_market_suspend_notice(self):
         title = '休市日期提醒'
         try:
-            notice_list = DataService.get_sse_suspend_notice()
+            notice_list = DataService.get_suspend_notice()
             for notice in notice_list:
                 model = {
                     "title": title,
-                    "description": "休市日期更新",
+                    "description": notice['title'],
                     "url": notice['url'],
                     "raw": notice
                 }

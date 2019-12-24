@@ -421,4 +421,4 @@ class DataService(object):
 
 if __name__ == '__main__':
     # print(DataService().get_fx_live('2019-11-14'))
-    print(DataService.get_gang_gu_tong_notice())
+    print(DataService.get_suspend_notice())
