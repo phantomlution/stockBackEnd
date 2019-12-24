@@ -19,6 +19,8 @@ session = requests.Session()
 session.mount('http://', HTTPAdapter(max_retries=3))
 session.mount('https://', HTTPAdapter(max_retries=3))
 
+timeout_config = (5, 10) # connect timeout, read timeout
+
 
 def get_response(url, headers=None, params=None, encoding=None, use_proxy=False, method='GET'):
     if use_proxy:
@@ -36,9 +38,9 @@ def get_response(url, headers=None, params=None, encoding=None, use_proxy=False,
             request_headers[header] = headers[header]
 
     if method == 'POST':
-        response = session.post(url, headers=request_headers, params=params, proxies=proxy, timeout=5)
+        response = session.post(url, headers=request_headers, params=params, proxies=proxy, timeout=timeout_config)
     else:
-        response = session.get(url, headers=request_headers, params=params, proxies=proxy, timeout=5)
+        response = session.get(url, headers=request_headers, params=params, proxies=proxy, timeout=timeout_config)
 
     result = {
         "response": ''
