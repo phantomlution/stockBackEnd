@@ -39,11 +39,16 @@ def update_news():
 
 @schedule_monitor
 def update_notification():
-    data_monitor_worker.update_cnn_fear_greed_index()
     data_monitor_worker.update_american_securities_yield()
     data_monitor_worker.update_central_bank_open_market_operation()
     data_monitor_worker.update_lpr_biding_change()
     data_monitor_worker.update_market_suspend_notice()
+
+
+# 慢速更新
+@schedule_monitor
+def low_priority_update():
+    data_monitor_worker.update_cnn_fear_greed_index()
 
 
 @schedule_monitor
@@ -79,6 +84,7 @@ def start_schedule():
     schedule.every(5).to(10).minutes.do(update_news)
     schedule.every(5).to(10).minutes.do(update_notification)
     schedule.every(5).to(10).minutes.do(user_update_track)
+    schedule.every(45).to(60).minutes.do(low_priority_update)
 
     run_continuously(1 * 60)
 
