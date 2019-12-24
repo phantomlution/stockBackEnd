@@ -19,7 +19,7 @@ session = requests.Session()
 session.mount('http://', HTTPAdapter(max_retries=3))
 session.mount('https://', HTTPAdapter(max_retries=3))
 
-timeout_config = (5, 10) # connect timeout, read timeout
+timeout_config = (5, 30) # connect timeout, read timeout
 
 
 def get_response(url, headers=None, params=None, encoding=None, use_proxy=False, method='GET'):
