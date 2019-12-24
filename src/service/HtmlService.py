@@ -20,7 +20,7 @@ session.mount('http://', HTTPAdapter(max_retries=3))
 session.mount('https://', HTTPAdapter(max_retries=3))
 
 
-def get_response(url, headers=None, params=None, encoding=None, use_proxy=False):
+def get_response(url, headers=None, params=None, encoding=None, use_proxy=False, method='GET'):
     if use_proxy:
         proxy = {
             "http": "socks5://127.0.0.1:1086",
@@ -35,7 +35,10 @@ def get_response(url, headers=None, params=None, encoding=None, use_proxy=False)
         for header in headers:
             request_headers[header] = headers[header]
 
-    response = session.get(url, headers=request_headers, params=params, proxies=proxy, timeout=5)
+    if method == 'POST':
+        response = session.post(url, headers=request_headers, params=params, proxies=proxy, timeout=5)
+    else:
+        response = session.get(url, headers=request_headers, params=params, proxies=proxy, timeout=5)
 
     result = {
         "response": ''

@@ -360,6 +360,65 @@ class DataService(object):
 
         return result
 
+    @staticmethod
+    def get_gang_gu_tong_suspend_notice():
+        url = 'http://www.sse.com.cn/services/hkexsc/disclo/announ/s_index.htm'
+        notice_list = DataService.get_sse_official_site_notice(url)
+
+        result = []
+        for notice in notice_list:
+            title = notice['title']
+            if '交易日' in title or '休市' in title:
+                result.append(notice)
+
+        return result
+
+    # 获取上交所官网公告
+    @staticmethod
+    def get_sse_official_site_notice(url):
+        raw_html = get_response(url, method='POST')
+        parsed_raw_html = get_parsed_href_html(url, raw_html)
+        html = BeautifulSoup(parsed_raw_html, 'html.parser')
+        item_list = html.select(".js_listPage dd")
+        if len(item_list) == 0:
+            raise Exception('找不到数据')
+        result = []
+        for item in item_list:
+            current_date = str.strip(item.select_one("span").text)
+            href_item = item.select_one("a")
+            model = {
+                "release_date": current_date,
+                "title": str.strip(href_item['title']),
+                "url": str.strip(href_item['href'])
+            }
+            model['id'] = model['url']
+            result.append(model)
+
+        return result
+
+    @staticmethod
+    def get_sse_suspend_notice():
+        url = 'http://www.sse.com.cn/disclosure/announcement/general/s_index.htm'
+        notice_list = DataService.get_sse_official_site_notice(url)
+
+        result = []
+        for notice in notice_list:
+            title = notice['title']
+            if '交易日' in title or '休市' in title:
+                result.append(notice)
+
+        return result
+
+    # 获取相关市场的休市公告
+    @staticmethod
+    def get_suspend_notice():
+        result = []
+        result.extend(DataService.get_gang_gu_tong_suspend_notice())
+        result.extend(DataService.get_sse_suspend_notice())
+
+        return result
+
 
 if __name__ == '__main__':
-    print(DataService().get_fx_live('2019-11-14'))
+    # print(DataService().get_fx_live('2019-11-14'))
+    print(DataService.get_gang_gu_tong_notice())

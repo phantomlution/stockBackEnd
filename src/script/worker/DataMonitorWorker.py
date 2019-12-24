@@ -8,22 +8,25 @@ from src.service.NotificationService import NotificationService
 class DataMonitorWorker:
 
     def update_cnn_fear_greed_index(self):
-        model = {
-            "title": 'CNN恐慌指数更新'
-        }
+        title = 'CNN恐慌指数更新'
+
         try:
             index_model = DataService.get_cnn_fear_greed_index()
-            model["description"] = '最新指数为: ' + str(index_model['now'])
-            model["raw"] = index_model
+
+            model = {
+                "title": title,
+                "description": '最新指数为: ' + str(index_model['now']),
+                "raw": index_model
+            }
+
             NotificationService.add('cnn_fear_greed_index', model)
         except Exception as e:
             print(e)
-            NotificationService.fail(model['title'], e)
+            NotificationService.fail(title, e)
 
     def update_american_securities_yield(self):
-        model = {
-            "title": '美债收益率倒挂'
-        }
+        title = '美债收益率倒挂'
+
         try:
             yield_model = DataService.get_american_securities_yield()
             biding = yield_model['data']
@@ -38,44 +41,68 @@ class DataMonitorWorker:
             else:
                 content = ''
 
-            model["description"] = content
-            model["raw"] = yield_model
+            model = {
+                "title": title,
+                "description": content,
+                "raw": yield_model
+            }
 
             if len(content) > 0:
                 NotificationService.add('american_securities_yield', model)
         except Exception as e:
             print(e)
-            NotificationService.fail(model['title'], e)
+            NotificationService.fail(title, e)
 
     def update_central_bank_open_market_operation(self):
-        model = {
-            "title": '央行公开市场操作'
-        }
+        title = '央行公开市场操作'
+
         try:
             operation_list = DataService.get_latest_central_bank_open_market_operation()
             for operation in operation_list:
-                model["description"] = operation['html']
-                model["html"] = True
-                model["raw"] = operation
+                model = {
+                    "title": title,
+                    "description": operation['html'],
+                    "html": True,
+                    "raw": operation
+                }
+
                 NotificationService.add('central_bank_open_market_operation', model)
         except Exception as e:
             print(e)
-            NotificationService.fail(model['title'], e)
+            NotificationService.fail(title, e)
 
     def update_lpr_biding_change(self):
-        model = {
-            "title": 'LPR报价变动'
-        }
+        title = 'LPR报价变动'
         try:
             biding = DataService.get_latest_lpr_biding()
-            model["html"] = True
-            model["description"] = '<p>1年: ' + str(biding['data']['1Y']) + '%</p><p>5年: ' + str(biding['data']['5Y']) + '%</p>'
-            model["raw"] = biding
+            model = {
+                "title": title,
+                "html": True,
+                "description": '<p>1年: ' + str(biding['data']['1Y']) + '%</p><p>5年: ' + str(biding['data']['5Y']) + '%</p>',
+                "raw": biding
+            }
             NotificationService.add('lrp_biding', model)
         except Exception as e:
             print(e)
-            NotificationService.fail(model['title'], e)
+            NotificationService.fail(title, e)
+
+    # 获取休市日期数据
+    def update_market_suspend_notice(self):
+        title = '休市日期提醒'
+        try:
+            notice_list = DataService.get_sse_suspend_notice()
+            for notice in notice_list:
+                model = {
+                    "title": title,
+                    "description": "休市日期更新",
+                    "url": notice['url'],
+                    "raw": notice
+                }
+                NotificationService.add('market_suspend_date', model)
+        except Exception as e:
+            print(e)
+            NotificationService.fail(title, e)
 
 
 if __name__ == '__main__':
-    DataMonitorWorker().update_central_bank_open_market_operation()
+    DataMonitorWorker().update_market_suspend_notice()

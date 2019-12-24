@@ -43,11 +43,11 @@ def update_notification():
     data_monitor_worker.update_american_securities_yield()
     data_monitor_worker.update_central_bank_open_market_operation()
     data_monitor_worker.update_lpr_biding_change()
+    data_monitor_worker.update_market_suspend_notice()
 
 
 @schedule_monitor
 def user_update_track():
-    print('started')
     ZhihuWorker.track_all_users()
 
 
