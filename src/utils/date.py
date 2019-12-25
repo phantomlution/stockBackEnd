@@ -54,8 +54,17 @@ def getDaysFrom2000(date1):
 # 按照天数的长度，将日期拆分成多个子区间
 def get_split_range(start, end, duration):
     result = []
-    start_date = datetime.strptime(start, time_format)
-    end_date = datetime.strptime(end, time_format)
+
+    if isinstance(start, date):
+        start_date = start
+    else:
+        start_date = datetime.strptime(start, time_format)
+
+    if isinstance(end, date):
+        end_date = end
+    else:
+        end_date = datetime.strptime(end, time_format)
+
     while start_date + timedelta(days=duration) <= end_date:
         result.append({
             "start": start_date.strftime(time_format),

@@ -4,7 +4,13 @@
 from bs4 import BeautifulSoup
 from src.utils.extractor import Extractor
 from src.service.HtmlService import get_response
-from src.utils.date import getCurrentTimestamp
+from src.utils.date import getCurrentTimestamp, get_split_range
+from src.script.job.Job import Job
+from datetime import datetime, timedelta
+from src.service.StockService import StockService
+
+client = StockService.getMongoInstance()
+calendar_document = client.stock.calendar
 
 
 def get_raw_table_data(date):
@@ -142,21 +148,57 @@ def get_event_calendar_item(date):
 
     for item in financial_data_model:
         item['date'] = date
-        item['type'] = 'financial_data'
+        item['type'] = 'data'
 
         result.append(item)
 
     for item in financial_event_model:
         item['date'] = date
-        item['type'] = 'financial_event'
+        item['type'] = 'event'
         result.append(item)
 
     for item in result:
         # 唯一性
-        item['key'] = date + '_' + item['name']
         item['created_date'] = getCurrentTimestamp()
 
     return result
 
 
-print(get_event_calendar_item('2019-12-24'))
+# 获取最近七日的日期
+def get_recent_date_list():
+    start_date = datetime.now()
+    end_date = start_date + timedelta(days=6)
+    date_list = []
+    split_range = get_split_range(start_date, end_date, 1)
+    for date_range in split_range:
+        date_list.append(date_range['start'])
+
+    return date_list
+
+
+class FinancialCalendarJob:
+
+    def __init__(self):
+        self.job = Job('财经日历数据提取')
+        for date_str in get_recent_date_list():
+            self.job.add(date_str)
+
+    def start(self):
+        source = 'fx678'
+        for task in self.job.task_list:
+            date_str = task['raw']
+            task_id = task['id']
+
+            item_list = get_event_calendar_item(date_str)
+            for item in item_list:
+                item['source'] = source
+                item['key'] = '_'.join([source, item['type'], item['date'], item['name']])
+                calendar_document.update({ "key": item['key'] }, item, True)
+            self.job.success(task_id)
+
+    def run(self, end_func=None):
+        self.job.start(self.start, end_func)
+
+
+if __name__ == '__main__':
+    FinancialCalendarJob().run()

@@ -8,8 +8,12 @@ import datetime
 import json
 from src.utils.date import get_english_month, get_ambiguous_date, full_time_format, parse_date_str, date_obj_to_timestamp
 from bs4 import BeautifulSoup
+from src.service.StockService import StockService
 
 session = FuturesSession(max_workers=1)
+
+client = StockService.getMongoInstance()
+calendar_document = client.stock.calendar
 
 
 class DataService(object):
@@ -417,6 +421,12 @@ class DataService(object):
         result.extend(DataService.get_sse_suspend_notice())
 
         return result
+
+    # 获取财经日历
+    @staticmethod
+    def get_financial_event_calendar(_date):
+        result = calendar_document.find({ "source": 'fx678', "date": _date }, { "_id": 0 })
+        return list(result)
 
 
 if __name__ == '__main__':

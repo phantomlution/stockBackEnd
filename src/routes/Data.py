@@ -78,3 +78,11 @@ def get_country_stat():
 @flask_response
 def get_huitong_index_list():
     return list(huitong_document.find({}, { "_id": 0 }))
+
+
+# 获取财经事件
+@data_api.route('/calendar')
+@flask_response
+def get_calendar():
+    _date = request.args.get('date')
+    return DataService.get_financial_event_calendar(_date)

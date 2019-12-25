@@ -14,14 +14,14 @@ def get_custom_event_list():
     return CustomEventService.get_custom_event_list()
 
 
-@custom_event_api.route('/', methods=['GET'])
+@custom_event_api.route('', methods=['GET'])
 @flask_response
 def get_custom_event():
     event_id = request.args.get('event_id')
     return CustomEventService.get_custom_event(event_id)
 
 
-@custom_event_api.route('/', methods=['PUT'])
+@custom_event_api.route('', methods=['PUT'])
 @flask_response
 def update_custom_event():
     model = request.get_json()
