@@ -69,11 +69,12 @@ def get_raw_table_data(date):
             for columnIndex, column in enumerate(row):
                     # 调整部分数据标记
                     if columnIndex < len(table_data[0]) and table_data[0][columnIndex] == '重要性':
-                        if row[columnIndex] == '高':
+                        column_value = row[columnIndex]
+                        if column_value == '高':
                             row[columnIndex] = '3'
-                        elif row[columnIndex] == '中':
+                        elif column_value == '中':
                             row[columnIndex] = '2'
-                        elif row[columnIndex] == '低':
+                        elif column_value == '低':
                             row[columnIndex] = '1'
 
     return table_item_list
@@ -90,15 +91,17 @@ def parse_financial_data(financial_raw_data):
     time_index = get_field_column_index(table_header, '时间')
     zone_index = get_field_column_index(table_header, '区域')
     indicator_index = get_field_column_index(table_header, '指标')
+    important_index = get_field_column_index(table_header, '重要性')
 
     result = []
     for item in table_data:
-        if len(item[indicator_index]) == 0:
+        if len(item[indicator_index]) == 0 or item[indicator_index] == '暂无数据':
             continue
         model = {
             "time": item[time_index],
             "area": item[zone_index],
-            "name": item[indicator_index]
+            "name": item[indicator_index],
+            "importantLevel": item[important_index]
         }
         result.append(model)
 
@@ -116,6 +119,7 @@ def parse_financial_event(financial_raw_event):
     country_index = get_field_column_index(table_header, '国家地区')
     zone_index = get_field_column_index(table_header, '地点')
     event_index = get_field_column_index(table_header, '事件')
+    important_index = get_field_column_index(table_header, '重要性')
 
     result = []
 
@@ -126,7 +130,8 @@ def parse_financial_event(financial_raw_event):
             "time": item[time_index],
             "country": item[country_index],
             "area": item[zone_index],
-            "name": item[event_index]
+            "name": item[event_index],
+            "importantLevel": item[important_index]
         }
         result.append(model)
     return result
@@ -202,3 +207,4 @@ class FinancialCalendarJob:
 
 if __name__ == '__main__':
     FinancialCalendarJob().run()
+    # get_event_calendar_item('2019-12-29')
