@@ -120,6 +120,7 @@ class StockService:
         code = model['code']
         base = StockService.get_stock_base(code)
         model['name'] = base['name']
+        model['is_delete'] = False
 
         if StockService.get_stock_pool_item(code) is None:
             # 手动更新预披露公告公告
@@ -134,11 +135,12 @@ class StockService:
     # 删除
     @staticmethod
     def remove_stock_pool(code):
-        stock_pool_document.remove({ "code": code })
+        stock_pool_document.update({"code": code}, { '$set': { "is_delete": True } })
 
     @staticmethod
     def get_stock_pool():
         item_list_cursor = stock_pool_document.aggregate([
+            { '$match': { 'is_delete': False } },
             { "$sort": { "order": -1, "temp": 1 } },
             { "$project": { "_id": 0 } }
         ])
