@@ -15,6 +15,7 @@ from src.script.job.StockSubCompanyUpdateJob import StockSubCompanyUpdateJob
 from src.script.job.StockRestrictSellUpdateJob import StockRestrictSellUpdateJob
 from src.script.job.DatabaseBackUpJob import DatabaseBackUpJob
 from src.script.job.StockConceptBlockRanking import StockConceptBlockRanking
+from src.script.job.FinancialCalendarJob import FinancialCalendarJob
 from src.script.job.JobScheduler import JobScheduler
 
 
@@ -35,7 +36,8 @@ def get_theme_routine():
 
 def get_daily_routine():
     return [
-        'MarketCapitalDataJob',
+        'MarketCapitalDataJob',  # 同步当日资金走势
+        'FinancialCalendarJob',  # 同步财经日历
         "BondDataJob",  # 更新债券信息数据源
         "BondRiskDataJob",  # 更新债券重大事项数据源
         'StockNoticeJob',
