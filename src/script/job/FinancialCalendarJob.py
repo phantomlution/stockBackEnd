@@ -172,7 +172,7 @@ def get_event_calendar_item(date):
 # 获取最近七日的日期
 def get_recent_date_list():
     start_date = datetime.now()
-    end_date = start_date + timedelta(days=6)
+    end_date = start_date + timedelta(days=10)
     date_list = []
     split_range = get_split_range(start_date, end_date, 1)
     for date_range in split_range:
