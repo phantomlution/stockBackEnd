@@ -16,6 +16,7 @@ base_document = client.stock.base
 history_document = client.stock.history
 stunt_document = client.stock.stunt
 concept_block_ranking_document = client.stock.concept_block_ranking
+surge_for_short_document = client.stock.surge_for_short
 
 
 def generate_analyze_file(file_name, content):
@@ -265,6 +266,9 @@ class AnalyzeService:
     def analyze_surge_for_short(code, date):
         trade_point_list = get_history_fragment_trade_data(code, date)
 
+        if trade_point_list is None or len(trade_point_list) == 0:
+            raise Exception('找不到分时成交数据')
+
         yesterday_close = trade_point_list[0]['price'] + trade_point_list[0]['change']
         today_close = trade_point_list[-1]['price']
 
@@ -292,19 +296,22 @@ class AnalyzeService:
                 return item_timestamp <= max_item_timestamp and (max_item_timestamp - item_timestamp) < 10 * 60 * 1000
 
             left_point_list = list(filter(left_filter_rule, trade_point_list))
+            right_point_list = list(filter(lambda item: item['timestamp'] >= max_item['timestamp'], trade_point_list))
 
             # 找到左侧数据点中的最小值
             left_min_item = lodash.min_by(left_point_list, lambda item: item['price'])
-
             left_min_increment = lodash.diff_in_percent(left_min_item['price'], yesterday_close)
+
+            # 找到右侧数据中的最小值
+            right_min_item = lodash.min_by(right_point_list, lambda item: item['price'])
+            right_min_increment = lodash.diff_in_percent(right_min_item['price'], yesterday_close)
+
             max_item_increment = lodash.diff_in_percent(max_item['price'], yesterday_close)
-            close_increment = lodash.diff_in_percent(today_close, yesterday_close)
 
             surge_percent = max_item_increment - left_min_increment
+            fall_percent = max_item_increment - right_min_increment
 
-            fall_percent = max_item_increment - close_increment
-
-            if surge_percent > 3 and fall_percent > 1:
+            if surge_percent >= 3 and fall_percent >= 1:
                 return {
                     "date": date,
                     "time": max_item['time'],
@@ -313,6 +320,24 @@ class AnalyzeService:
                 }
 
         return None
+
+    @staticmethod
+    def get_surge_for_short(code, date):
+        item = surge_for_short_document.find_one({ "code": code, "date": date }, { "_id": 0})
+        if item is None:
+            result = AnalyzeService.analyze_surge_for_short(code[2:], date)
+            model = {
+                "code": code,
+                "date": date,
+                "result": result
+            }
+            surge_for_short_document.insert(model)
+
+        item = surge_for_short_document.find_one({ "code": code, "date": date }, { "_id": 0})
+        if item is None:
+            raise Exception('找不到分析结果')
+
+        return item
 
 
 if __name__ == '__main__':

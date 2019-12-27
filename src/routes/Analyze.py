@@ -38,7 +38,7 @@ def get_restrict_sell_date():
 def get_surge_for_short():
     code = request.args.get('code')
     _date = request.args.get('date')
-    return AnalyzeService.analyze_surge_for_short(code, _date)
+    return AnalyzeService.get_surge_for_short(code, _date)
 
 
 # 临时分析数据
