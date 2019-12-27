@@ -3,11 +3,13 @@
 '''
 from src.service.StockService import StockService
 from src.assets.DataProvider import DataProvider
+from src.service.FinancialService import get_history_fragment_trade_data
 from src.utils.FileUtils import generate_static_dir_file
-from src.utils.date import getCurrentTimestamp
+from src.utils.date import getCurrentTimestamp, date_str_to_timestamp, full_time_format
 import os
 import json
 import math
+from src.utils.lodash import lodash
 
 client = StockService.getMongoInstance()
 base_document = client.stock.base
@@ -258,6 +260,60 @@ class AnalyzeService:
         result = concept_block_ranking_document.find({}, {"_id": 0})
         return list(result)
 
+    # 判断是否存在，跌-拉高出货
+    @staticmethod
+    def analyze_surge_for_short(code, date):
+        trade_point_list = get_history_fragment_trade_data(code, date)
+
+        yesterday_close = trade_point_list[0]['price'] + trade_point_list[0]['change']
+        today_close = trade_point_list[-1]['price']
+
+        # 中场休息时间
+        rest_timestamp = date_str_to_timestamp(date + ' 12:00:00', full_time_format)
+
+        def get_virtual_timestamp(timestamp):
+            if timestamp > rest_timestamp:
+                return timestamp - 90 * 60 * 1000 - 10
+            else:
+                return timestamp
+
+        for point in trade_point_list:
+            point['timestamp'] = date_str_to_timestamp(date + ' ' + point['time'], full_time_format)
+
+        temp_max_item = lodash.max_by(trade_point_list, lambda item: item['price'])
+
+        # 可能存在多个相同的最大值
+        max_item_list = list(filter(lambda item: item['price'] == temp_max_item['price'], trade_point_list))
+
+        for max_item in max_item_list:
+            def left_filter_rule(item):
+                item_timestamp = get_virtual_timestamp(item['timestamp'])
+                max_item_timestamp = get_virtual_timestamp(max_item['timestamp'])
+                return item_timestamp <= max_item_timestamp and (max_item_timestamp - item_timestamp) < 10 * 60 * 1000
+
+            left_point_list = list(filter(left_filter_rule, trade_point_list))
+
+            # 找到左侧数据点中的最小值
+            left_min_item = lodash.min_by(left_point_list, lambda item: item['price'])
+
+            left_min_increment = lodash.diff_in_percent(left_min_item['price'], yesterday_close)
+            max_item_increment = lodash.diff_in_percent(max_item['price'], yesterday_close)
+            close_increment = lodash.diff_in_percent(today_close, yesterday_close)
+
+            surge_percent = max_item_increment - left_min_increment
+
+            fall_percent = max_item_increment - close_increment
+
+            if surge_percent > 3 and fall_percent > 1:
+                return {
+                    "date": date,
+                    "time": max_item['time'],
+                    "surge": surge_percent,
+                    "fall": fall_percent
+                }
+
+        return None
+
 
 if __name__ == '__main__':
-    print(AnalyzeService.get_low_amount_restrict_sell())
+    print(AnalyzeService.analyze_surge_for_short('600242', '2019-12-23'))

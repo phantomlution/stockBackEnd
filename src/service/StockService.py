@@ -121,6 +121,7 @@ class StockService:
         base = StockService.get_stock_base(code)
         model['name'] = base['name']
         model['is_delete'] = False
+        model['order'] = 999
 
         if StockService.get_stock_pool_item(code) is None:
             # 手动更新预披露公告公告
@@ -141,7 +142,7 @@ class StockService:
     def get_stock_pool():
         item_list_cursor = stock_pool_document.aggregate([
             { '$match': { 'is_delete': False } },
-            { "$sort": { "order": -1, "temp": 1 } },
+            { "$sort": { "order": 1 } },
             { "$project": { "_id": 0 } }
         ])
         return list(item_list_cursor)
