@@ -295,8 +295,13 @@ class AnalyzeService:
                 max_item_timestamp = get_virtual_timestamp(max_item['timestamp'])
                 return item_timestamp <= max_item_timestamp and (max_item_timestamp - item_timestamp) < 10 * 60 * 1000
 
+            def right_filter_rule(item):
+                item_timestamp = get_virtual_timestamp(item['timestamp'])
+                max_item_timestamp = get_virtual_timestamp(max_item['timestamp'])
+                return item_timestamp >= max_item_timestamp and (item_timestamp - max_item_timestamp) < 3 * 10 * 60 * 1000
+
             left_point_list = list(filter(left_filter_rule, trade_point_list))
-            right_point_list = list(filter(lambda item: item['timestamp'] >= max_item['timestamp'], trade_point_list))
+            right_point_list = list(filter(right_filter_rule, trade_point_list))
 
             # 找到左侧数据点中的最小值
             left_min_item = lodash.min_by(left_point_list, lambda item: item['price'])

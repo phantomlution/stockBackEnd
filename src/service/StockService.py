@@ -121,7 +121,8 @@ class StockService:
         base = StockService.get_stock_base(code)
         model['name'] = base['name']
         model['is_delete'] = False
-        model['order'] = 999
+        if model['order'] is None:
+            model['order'] = 999
 
         if StockService.get_stock_pool_item(code) is None:
             # 手动更新预披露公告公告
