@@ -3,6 +3,7 @@
 '''
 from src.service.DataService import DataService
 from src.service.NotificationService import NotificationService
+from src.service.LogService import LogService
 
 
 class DataMonitorWorker:
@@ -22,7 +23,7 @@ class DataMonitorWorker:
             NotificationService.add('cnn_fear_greed_index', model)
         except Exception as e:
             print(e)
-            NotificationService.fail(title, e)
+            LogService.error(title, e)
 
     def update_american_securities_yield(self):
         title = '美债收益率倒挂'
@@ -51,7 +52,7 @@ class DataMonitorWorker:
                 NotificationService.add('american_securities_yield', model)
         except Exception as e:
             print(e)
-            NotificationService.fail(title, e)
+            LogService.error(title, e)
 
     def update_central_bank_open_market_operation(self):
         title = '央行公开市场操作'
@@ -69,7 +70,7 @@ class DataMonitorWorker:
                 NotificationService.add('central_bank_open_market_operation', model)
         except Exception as e:
             print(e)
-            NotificationService.fail(title, e)
+            LogService.error(title, e)
 
     def update_lpr_biding_change(self):
         title = 'LPR报价变动'
@@ -84,7 +85,7 @@ class DataMonitorWorker:
             NotificationService.add('lrp_biding', model)
         except Exception as e:
             print(e)
-            NotificationService.fail(title, e)
+            LogService.error(title, e)
 
     # 获取休市日期数据
     def update_market_suspend_notice(self):
@@ -101,7 +102,7 @@ class DataMonitorWorker:
                 NotificationService.add('market_suspend_date', model)
         except Exception as e:
             print(e)
-            NotificationService.fail(title, e)
+            LogService.error(title, e)
 
 
 if __name__ == '__main__':

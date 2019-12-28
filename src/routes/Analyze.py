@@ -33,12 +33,17 @@ def get_restrict_sell_date():
 
 
 # 判断是否存在拉高出货的点
-@analyze_api.route('/surge_for_short', methods=['GET'])
+@analyze_api.route('/surge_for_short', methods=['PUT'])
 @flask_response
 def get_surge_for_short():
-    code = request.args.get('code')
-    _date = request.args.get('date')
-    return AnalyzeService.get_surge_for_short(code, _date)
+    model = request.get_json()
+    code = model.get('code')
+    date_list = model['dateList']
+
+    result = []
+    for _date in date_list:
+        result.append(AnalyzeService.get_surge_for_short(code, _date))
+    return result
 
 
 # 临时分析数据

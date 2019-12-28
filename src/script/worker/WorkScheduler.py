@@ -2,7 +2,7 @@ from src.script.worker.DataMonitorWorker import DataMonitorWorker
 from src.script.worker.NewsScratchWorker import NewsScratchWorker
 from src.script.worker.ZhihuWorker import ZhihuWorker
 from functools import wraps
-from src.service.NotificationService import NotificationService
+from src.service.LogService import LogService
 import time
 import threading
 import schedule
@@ -21,7 +21,7 @@ def schedule_monitor(func):
         except Exception as e:
             print(e)
             title = 'schedule_' + func.__name__
-            NotificationService.fail(title, e)
+            LogService.error(title, e)
 
     return func_log
 

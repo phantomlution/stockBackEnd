@@ -326,7 +326,7 @@ class DataService(object):
 
     @staticmethod
     def get_concept_block_history(code):
-        url = 'http://push2his.eastmoney.com/api/qt/stock/kline/get'
+        url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get'
         params = {
             'cb': 'jQuery172002253503294348569_1576387811235',
             'secid': '90.' + code,

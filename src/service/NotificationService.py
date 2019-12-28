@@ -36,15 +36,3 @@ class NotificationService:
 
         if notification_document.find_one({"key": key, "id": model["id"]}) is None:
             notification_document.insert(model)
-
-    @staticmethod
-    def fail(title, exception):
-        model = {
-            "title": title,
-            "description": '执行失败',
-            "raw": {
-                "id": get_current_datetime_str() + '_' + str(uuid.uuid4()),
-                "exception": str(exception)
-            }
-        }
-        return NotificationService.add('execute_failed', model)
