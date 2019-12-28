@@ -14,7 +14,8 @@ class DatabaseBackUpJob:
             'custom_event_item',
             'notification',
             'stock_pool',
-            'huitong'
+            'huitong',
+            'chess'
         ]
         for task in task_list:
             self.job.add(task)

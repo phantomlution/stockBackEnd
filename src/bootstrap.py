@@ -8,6 +8,7 @@ from src.routes.CustomEvent import custom_event_api
 from src.routes.Analyze import analyze_api
 from src.routes.News import news_api
 from src.routes.Live import live_api
+from src.routes.Chess import chess_api
 
 app = Flask(__name__)
 
@@ -19,6 +20,7 @@ app.register_blueprint(custom_event_api)
 app.register_blueprint(analyze_api)
 app.register_blueprint(news_api)
 app.register_blueprint(live_api)
+app.register_blueprint(chess_api)
 
 app.config['SECRET_KEY'] = 'secret!'
 
