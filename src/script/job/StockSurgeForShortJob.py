@@ -2,20 +2,14 @@
     [跌]拉高出货点分析
 '''
 from src.script.job.Job import Job
-from src.assets.DataProvider import DataProvider
 from src.service.StockService import StockService
 from src.service.AnalyzeService import AnalyzeService
 
 
 class StockSurgeForShortJob:
     def __init__(self):
-        stock_list = StockService.get_stock_pool()
-        # stock_list = [
-        #     {
-        #         "code": "SZ002941",
-        #         "name": 'xjjj'
-        #     }
-        # ]
+        # stock_list = StockService.get_stock_pool()
+        stock_list = AnalyzeService.get_stock_list()
         self.job = Job(name='[跌]拉高出货点分析')
         for stock in stock_list:
             if '指数' not in stock['name']:

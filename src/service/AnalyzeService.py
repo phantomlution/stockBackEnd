@@ -17,6 +17,7 @@ history_document = client.stock.history
 stunt_document = client.stock.stunt
 concept_block_ranking_document = client.stock.concept_block_ranking
 surge_for_short_document = client.stock.surge_for_short
+analyze_stock_document = client.stock.analyze_stock
 
 
 def generate_analyze_file(file_name, content):
@@ -343,6 +344,17 @@ class AnalyzeService:
             raise Exception('找不到分析结果')
 
         return item
+
+    # 插入股票代码到临时表
+    @staticmethod
+    def update_stock_list(stock_list):
+        analyze_stock_document.drop()
+        for stock in stock_list:
+            analyze_stock_document.insert(stock)
+
+    @staticmethod
+    def get_stock_list():
+        return list(analyze_stock_document.find({}, { "_id": 0 }))
 
 
 if __name__ == '__main__':

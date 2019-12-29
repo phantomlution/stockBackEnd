@@ -58,3 +58,10 @@ def get_temporary_analyze():
 @flask_response
 def get_concept_block_trend():
     return AnalyzeService.get_concept_block_ranking()
+
+
+@analyze_api.route('/stock/list', methods=['POST'])
+@flask_response
+def insert_stock_list():
+    stock_list = request.get_json()
+    AnalyzeService.update_stock_list(stock_list)
