@@ -13,7 +13,7 @@ from src.service.StockService import StockService
 session = FuturesSession(max_workers=1)
 
 client = StockService.getMongoInstance()
-calendar_document = client.stock.calendar
+financial_calendar_document = client.stock.financial_calendar
 
 
 class DataService(object):
@@ -425,7 +425,7 @@ class DataService(object):
     # 获取财经日历
     @staticmethod
     def get_financial_event_calendar(_date):
-        result = calendar_document.find({ "source": 'fx678', "date": _date }, { "_id": 0 })
+        result = financial_calendar_document.find({ "source": 'fx678', "date": _date }, { "_id": 0 })
         return list(result)
 
 

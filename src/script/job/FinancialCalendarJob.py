@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from src.service.StockService import StockService
 
 client = StockService.getMongoInstance()
-calendar_document = client.stock.calendar
+financial_calendar_document = client.stock.financial_calendar
 
 
 def get_raw_table_data(date):
@@ -198,7 +198,7 @@ class FinancialCalendarJob:
             for item in item_list:
                 item['source'] = source
                 item['key'] = '_'.join([source, item['type'], item['date'], item['name']])
-                calendar_document.update({ "key": item['key'] }, item, True)
+                financial_calendar_document.update({ "key": item['key'] }, item, True)
             self.job.success(task_id)
 
     def run(self, end_func=None):
