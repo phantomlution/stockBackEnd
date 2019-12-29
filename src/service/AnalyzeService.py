@@ -290,40 +290,45 @@ class AnalyzeService:
         # 可能存在多个相同的最大值
         max_item_list = list(filter(lambda item: item['price'] == temp_max_item['price'], trade_point_list))
 
-        for max_item in max_item_list:
-            def left_filter_rule(item):
-                item_timestamp = get_virtual_timestamp(item['timestamp'])
-                max_item_timestamp = get_virtual_timestamp(max_item['timestamp'])
-                return item_timestamp <= max_item_timestamp and (max_item_timestamp - item_timestamp) < 10 * 60 * 1000
+        if len(max_item_list) == 0:
+            return None
 
-            def right_filter_rule(item):
-                item_timestamp = get_virtual_timestamp(item['timestamp'])
-                max_item_timestamp = get_virtual_timestamp(max_item['timestamp'])
-                return item_timestamp >= max_item_timestamp and (item_timestamp - max_item_timestamp) < 3 * 10 * 60 * 1000
+        # 只考虑最后一个最大值
+        max_item = max_item_list[-1]
 
-            left_point_list = list(filter(left_filter_rule, trade_point_list))
-            right_point_list = list(filter(right_filter_rule, trade_point_list))
+        def left_filter_rule(item):
+            item_timestamp = get_virtual_timestamp(item['timestamp'])
+            max_item_timestamp = get_virtual_timestamp(max_item['timestamp'])
+            return item_timestamp <= max_item_timestamp and (max_item_timestamp - item_timestamp) < 10 * 60 * 1000
 
-            # 找到左侧数据点中的最小值
-            left_min_item = lodash.min_by(left_point_list, lambda item: item['price'])
-            left_min_increment = lodash.diff_in_percent(left_min_item['price'], yesterday_close)
+        def right_filter_rule(item):
+            item_timestamp = get_virtual_timestamp(item['timestamp'])
+            max_item_timestamp = get_virtual_timestamp(max_item['timestamp'])
+            return item_timestamp >= max_item_timestamp and (item_timestamp - max_item_timestamp) < 3 * 10 * 60 * 1000
 
-            # 找到右侧数据中的最小值
-            right_min_item = lodash.min_by(right_point_list, lambda item: item['price'])
-            right_min_increment = lodash.diff_in_percent(right_min_item['price'], yesterday_close)
+        left_point_list = list(filter(left_filter_rule, trade_point_list))
+        right_point_list = list(filter(right_filter_rule, trade_point_list))
 
-            max_item_increment = lodash.diff_in_percent(max_item['price'], yesterday_close)
+        # 找到左侧数据点中的最小值
+        left_min_item = lodash.min_by(left_point_list, lambda item: item['price'])
+        left_min_increment = lodash.diff_in_percent(left_min_item['price'], yesterday_close)
 
-            surge_percent = max_item_increment - left_min_increment
-            fall_percent = max_item_increment - right_min_increment
+        # 找到右侧数据中的最小值
+        right_min_item = lodash.min_by(right_point_list, lambda item: item['price'])
+        right_min_increment = lodash.diff_in_percent(right_min_item['price'], yesterday_close)
 
-            if surge_percent >= 3 and fall_percent >= 1:
-                return {
-                    "date": date,
-                    "time": max_item['time'],
-                    "surge": surge_percent,
-                    "fall": fall_percent
-                }
+        max_item_increment = lodash.diff_in_percent(max_item['price'], yesterday_close)
+
+        surge_percent = max_item_increment - left_min_increment
+        fall_percent = max_item_increment - right_min_increment
+
+        if surge_percent >= 3 and fall_percent >= 1:
+            return {
+                "date": date,
+                "time": max_item['time'],
+                "surge": surge_percent,
+                "fall": fall_percent
+            }
 
         return None
 

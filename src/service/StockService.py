@@ -126,7 +126,7 @@ class StockService:
 
         if StockService.get_stock_pool_item(code) is None:
             # 手动更新预披露公告公告
-            StockService.update_stock_pre_release(code)
+            StockService.update_stock_pool_item_info(code)
 
         stock_pool_document.update({ "code": code }, model, True)
 
@@ -325,11 +325,11 @@ class StockService:
 
     # 获取限售股票
     @staticmethod
-    def get_restricted_sell_stock(code):
+    def update_stock_restricted_sell(code):
         restrict_sell_list = []
         StockService.get_all_restricted_sell_stock(restrict_sell_list, code)
         restrict_sell_list.reverse()
-        return restrict_sell_list
+        base_document.update({"symbol": code}, {'$set': {'restrict_sell_list': restrict_sell_list}}, True)
 
     @staticmethod
     def get_hot_money_data():
@@ -392,8 +392,7 @@ class StockService:
     def get_history_data(code):
         return history_document.find_one({"code": code}, {"_id": 0})
 
-
-if __name__ == '__main__':
-    stock_code = 'SH600738'
-    result = StockService.get_stock_biding(stock_code)
-    print(result)
+    @staticmethod
+    def update_stock_pool_item_info(code):
+        StockService.update_stock_pre_release(code)
+        StockService.update_stock_restricted_sell(code)

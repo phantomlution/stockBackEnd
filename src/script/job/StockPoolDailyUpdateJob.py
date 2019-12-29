@@ -21,7 +21,7 @@ class StockPoolDailyUpdateJob:
     async def asynchronize_update_stock_daily(self, task_id, code):
         # 目前只更新预披露信息
         try:
-            StockService.update_stock_pre_release(code)
+            StockService.update_stock_pool_item_info(code)
             self.job.success(task_id)
         except Exception as e:
             self.job.fail(task_id, e)
