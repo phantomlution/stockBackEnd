@@ -102,3 +102,10 @@ def get_stock_pledge():
 def get_stock_biding():
     code = request.args.get('code')
     return StockService.get_stock_biding(code)
+
+
+@stock_api.route('/live')
+@flask_response
+def get_stock_live():
+    code = request.args.get('code')
+    return StockService.get_stock_real_time_trend(code)

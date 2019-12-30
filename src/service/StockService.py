@@ -396,3 +396,34 @@ class StockService:
     def update_stock_pool_item_info(code):
         StockService.update_stock_pre_release(code)
         StockService.update_stock_restricted_sell(code)
+
+    @staticmethod
+    def get_stock_real_time_trend(code):
+        url = 'http://push2.eastmoney.com/api/qt/stock/trends2/get'
+        current = getCurrentTimestamp()
+        params = {
+            "fields1": "f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13",
+            "fields2": "f51,f52,f53,f54,f55,f56,f57,f58",
+            "ndays": "1",
+            "iscr": "0",
+            "secid": "1." + code[2:],
+            "cb": "jQuery112409088551039429049_" + str(current),
+            "_": str(current),
+        }
+        raw_response = get_response(url, params=params)
+        response_json = extract_jsonp(raw_response, params['cb'])['data']
+        trend_data = response_json['trends']
+
+        result = []
+        for item in trend_data:
+            raw_data = item.split(',')
+            result.append({
+                "time": raw_data[0].split(' ')[1] + ':00',
+                "price": raw_data[2]
+            })
+
+        return result
+
+
+if __name__ == '__main__':
+    StockService.get_stock_real_time_trend()
