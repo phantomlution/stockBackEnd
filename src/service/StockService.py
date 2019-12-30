@@ -406,7 +406,7 @@ class StockService:
             "fields2": "f51,f52,f53,f54,f55,f56,f57,f58",
             "ndays": "1",
             "iscr": "0",
-            "secid": "1." + code[2:],
+            "secid": ("1" if code[:2] == 'SH' else "0") + "." + code[2:],
             "cb": "jQuery112409088551039429049_" + str(current),
             "_": str(current),
         }
