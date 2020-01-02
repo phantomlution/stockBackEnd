@@ -377,6 +377,9 @@ class AnalyzeService:
                     model['short'].append(item)
                 model['total'] += 1
 
+            if model['total'] == 0:
+                continue
+
             result.append(model)
 
         return result
