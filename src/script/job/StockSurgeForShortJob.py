@@ -4,12 +4,14 @@
 from src.script.job.Job import Job
 from src.service.StockService import StockService
 from src.service.AnalyzeService import AnalyzeService
+from src.assets.DataProvider import DataProvider
 
 
 class StockSurgeForShortJob:
     def __init__(self):
         # stock_list = StockService.get_stock_pool()
-        stock_list = AnalyzeService.get_stock_list()
+        # stock_list = AnalyzeService.get_stock_list()
+        stock_list = DataProvider().get_stock_list()
         self.job = Job(name='[跌]拉高出货点分析')
         for stock in stock_list:
             if '指数' not in stock['name']:
@@ -25,9 +27,12 @@ class StockSurgeForShortJob:
             code = stock.get('code')
             history_item_list = StockService.get_history_data(code)
             # 分析最近10个交易日的数据
-            for item in history_item_list['data'][-200:]:
+            for item in history_item_list['data'][-22:]:
                 _date = item[0]
-                AnalyzeService.get_surge_for_short(code, _date)
+                try:
+                    AnalyzeService.get_surge_for_short(code, _date)
+                except Exception as e:
+                    print(e)
             self.job.success(task_id)
 
 

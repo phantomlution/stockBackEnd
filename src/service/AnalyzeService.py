@@ -268,7 +268,7 @@ class AnalyzeService:
         trade_point_list = get_history_fragment_trade_data(code, date)
 
         if trade_point_list is None or len(trade_point_list) == 0:
-            raise Exception('找不到分时成交数据')
+            raise Exception('{},{}找不到分时成交数据'.format(code, date))
 
         yesterday_close = trade_point_list[0]['price'] + trade_point_list[0]['change']
         today_close = trade_point_list[-1]['price']
