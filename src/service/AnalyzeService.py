@@ -361,6 +361,26 @@ class AnalyzeService:
     def get_stock_list():
         return list(analyze_stock_document.find({}, { "_id": 0 }))
 
+    @staticmethod
+    def get_market_surge_for_short(date_list):
+        result = []
+
+        for _date in date_list:
+            model = {
+                "date": _date,
+                "total": 0,
+                "short": []
+            }
+            item_list = surge_for_short_document.find({ "date": _date }, { "_id": 0 })
+            for item in item_list:
+                if item['result'] is not None:
+                    model['short'].append(item)
+                model['total'] += 1
+
+            result.append(model)
+
+        return result
+
 
 if __name__ == '__main__':
     print(AnalyzeService.analyze_surge_for_short('600242', '2019-12-23'))

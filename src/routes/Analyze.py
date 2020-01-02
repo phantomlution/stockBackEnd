@@ -46,6 +46,14 @@ def get_surge_for_short():
     return result
 
 
+# 全市场拉高出货分析
+@analyze_api.route('/market/surge_for_short', methods=['POST'])
+@flask_response
+def get_market_surge_for_short():
+    date_list = request.get_json()
+    return AnalyzeService.get_market_surge_for_short(date_list)
+
+
 # 临时分析数据
 @analyze_api.route('/custom', methods=['GET'])
 @flask_response

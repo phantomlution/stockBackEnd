@@ -26,13 +26,14 @@ class StockSurgeForShortJob:
             task_id = task["id"]
             code = stock.get('code')
             history_item_list = StockService.get_history_data(code)
-            # 分析最近10个交易日的数据
-            for item in history_item_list['data'][-22:]:
-                _date = item[0]
-                try:
-                    AnalyzeService.get_surge_for_short(code, _date)
-                except Exception as e:
-                    print(e)
+            if history_item_list is not None:
+                # 分析最近10个交易日的数据
+                for item in history_item_list['data'][-11:]:
+                    _date = item[0]
+                    try:
+                        AnalyzeService.get_surge_for_short(code, _date)
+                    except Exception as e:
+                        print(e)
             self.job.success(task_id)
 
 
