@@ -15,7 +15,9 @@ class DatabaseBackUpJob:
             'notification',
             'stock_pool',
             'huitong',
-            'chess'
+            'chess',
+            'sync_index',
+            "sync_concept"
         ]
         for task in task_list:
             self.job.add(task)
