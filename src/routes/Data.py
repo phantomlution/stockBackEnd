@@ -86,3 +86,10 @@ def get_huitong_index_list():
 def get_calendar():
     _date = request.args.get('date')
     return DataService.get_financial_event_calendar(_date)
+
+
+# 获取最近的市场交易日列表，目前按照history表中上证指数的数据点个数
+@data_api.route('/recent/market/open')
+@flask_response
+def get_recent_open_date_list():
+    return DataService.get_recent_open_date_list()

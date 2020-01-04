@@ -428,7 +428,21 @@ class DataService(object):
         result = financial_calendar_document.find({ "source": 'fx678', "date": _date }, { "_id": 0 })
         return list(result)
 
+    @staticmethod
+    def get_recent_open_date_list():
+        code = 'SH000001'
+        history = StockService.get_history_data(code)
+
+        if history is None or len(history['data']) == 0:
+            raise Exception('获取开市日期失败，数据为空')
+
+        result = []
+        for item in history['data']:
+            result.append(item[0])
+
+        return result
+
 
 if __name__ == '__main__':
     # print(DataService().get_fx_live('2019-11-14'))
-    print(DataService.get_suspend_notice())
+    print(DataService.get_recent_open_date_list())
