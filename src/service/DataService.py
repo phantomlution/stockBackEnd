@@ -446,10 +446,6 @@ class DataService(object):
 
         return result
 
-    @staticmethod
-    def get_sync_item_list():
-        return DataService.get_sync_list()
-
     # 获取同步数据的分时走势
     @staticmethod
     def get_sync_fragment_deal(secid, _date):
@@ -461,7 +457,7 @@ class DataService(object):
         return None
 
     @staticmethod
-    def get_sync_list():
+    def get_sync_item_list():
         if _cache['sync_item_list'] is not None:
             return _cache['sync_item_list']
 

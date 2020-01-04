@@ -2,6 +2,7 @@
      数据库部分表备份
 '''
 from src.script.job.Job import Job
+from src.service.DataService import DataService
 import os
 
 
@@ -16,11 +17,22 @@ class DatabaseBackUpJob:
             'stock_pool',
             'huitong',
             'chess',
-            'sync_index',
-            "sync_concept"
         ]
+
+        task_list += self.get_other_table()
+
         for task in task_list:
             self.job.add(task)
+
+    def get_other_table(self):
+        other_table = []
+        item_list = DataService.get_sync_item_list()
+        for item in item_list:
+            table_name = item['document']
+            if table_name not in other_table:
+                other_table.append(table_name)
+
+        return other_table
 
     def start(self):
         db_name = 'stock'

@@ -15,7 +15,7 @@ class DataSyncJob:
     def __init__(self):
         self.job = Job('每日其他数据同步')
 
-        for item in DataService.get_sync_list():
+        for item in DataService.get_sync_item_list():
             self.job.add(item)
 
     def sync_index_or_concept(self, config):
