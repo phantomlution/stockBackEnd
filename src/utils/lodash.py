@@ -27,3 +27,11 @@ class lodash:
     @staticmethod
     def diff_in_percent(num1, num2):
         return round((num1 - num2) / num2 * 100, 2)
+
+    @staticmethod
+    def find_index(_list, callback):
+        for idx, item in enumerate(_list):
+            if callback(item):
+                return idx
+
+        return -1

@@ -1,6 +1,7 @@
 from src.utils.date import getCurrentTimestamp
 from src.service.HtmlService import get_response, extract_jsonp
 import datetime
+from src.utils.lodash import lodash
 
 FREQUENCY_ONE_MINUTE = '1min'
 
@@ -30,6 +31,9 @@ class EastMoneyService:
     def group_by_day(secid, name, item_list, callback):
         result = []
         model = None
+
+        kline = EastMoneyService.get_kline(secid)
+
         for trend in item_list:
             item = trend.split(',')
             _date = item[0].split(' ')[0]
@@ -49,6 +53,16 @@ class EastMoneyService:
                     "name": name,
                     "data": []
                 }
+                # 拼接昨收
+                idx = lodash.find_index(kline, lambda _item: _item['date'] == _date)
+                if idx == -1:
+                    raise Exception('找不到pre_close')
+                elif idx == 0:
+                    # 第一个点
+                    model['pre_close'] = kline[idx]['open']
+                else:
+                    model['pre_close'] = kline[idx - 1]['close']
+
             model['data'].append(current)
 
         if len(model['data']) > 0:
@@ -104,37 +118,39 @@ class EastMoneyService:
         return result
 
     # 获取K线数据
-    # @staticmethod
-    # def get_kline_5_min(secid):
-    #     url = 'http://push2his.eastmoney.com/api/qt/stock/kline/get'
-    #     params = {
-    #         "secid": secid,
-    #         "fields1": "f1,f2,f3,f4,f5",
-    #         "fields2": "f51,f52,f53,f54,f55,f56,f57,f58",
-    #         "klt": "5",
-    #         "fqt": "0",
-    #         "beg": "19900101",
-    #         "end": str(YEAR_AFTER_NEXT_YEAR) + "0101"
-    #     }
-    #
-    #     response = EastMoneyService.get_response(url, params=params)
-    #
-    #     kline_list = response['data']['klines']
-    #
-    #     def callback(_time, item):
-    #         return {
-    #             "time": _time,
-    #             "open": float(item[1]),
-    #             "close": float(item[2]),
-    #             "max": float(item[3]),
-    #             "min": float(item[4]),
-    #             "amount": float(item[6])
-    #         }
-    #
-    #     result = EastMoneyService.group_by_day(secid, response['data']['name'], kline_list, callback)
-    #     print(result)
+    @staticmethod
+    def get_kline(secid):
+        url = 'http://push2his.eastmoney.com/api/qt/stock/kline/get'
+        params = {
+            "secid": secid,
+            "fields1": "f1,f2,f3,f4,f5",
+            "fields2": "f51,f52,f53,f54,f55,f56,f57,f58",
+            "klt": "101",
+            "fqt": "0",
+            "beg": "19900101",
+            "end": str(YEAR_AFTER_NEXT_YEAR) + "0101"
+        }
 
-# if __name__ == '__main__':
-#     print(EastMoneyService.get_kline_5_min('90.BK0940'))
+        response = EastMoneyService.get_response(url, params=params)
 
+        kline_list = response['data']['klines']
 
+        result = []
+
+        for kline_item in kline_list[-420:]:
+            item = kline_item.split(',')
+            result.append({
+                "date": item[0],
+                "open": float(item[1]),
+                "close": float(item[2]),
+                "max": float(item[3]),
+                "min": float(item[4]),
+                "amount": float(item[6])
+            })
+
+        return result
+
+if __name__ == '__main__':
+    print(EastMoneyService.get_index_or_concept_one_minute_tick_data('1.000001', days=5))
+
+    # print(EastMoneyService.get_kline('1.000001'))

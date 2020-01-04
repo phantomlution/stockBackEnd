@@ -15,6 +15,10 @@ session = FuturesSession(max_workers=1)
 client = StockService.getMongoInstance()
 financial_calendar_document = client.stock.financial_calendar
 
+_cache = {
+    "sync_item_list": None
+}
+
 
 class DataService(object):
 
@@ -439,6 +443,56 @@ class DataService(object):
         result = []
         for item in history['data']:
             result.append(item[0])
+
+        return result
+
+    @staticmethod
+    def get_sync_item_list():
+        return DataService.get_sync_list()
+
+    # 获取同步数据的分时走势
+    @staticmethod
+    def get_sync_fragment_deal(secid, _date):
+        sync_list = DataService.get_sync_item_list()
+        for item in sync_list:
+            if item['secid'] == secid:
+                return client.stock[item['document']].find_one({ "date": _date, "secid": secid }, { "_id": 0 })
+
+        return None
+
+    @staticmethod
+    def get_sync_list():
+        if _cache['sync_item_list'] is not None:
+            return _cache['sync_item_list']
+
+        result = []
+        # 指数
+        index_list = [
+            {
+                "name": '上证指数',
+                "secid": '1.000001'
+            }
+        ]
+
+        # 添加指数
+        for item in index_list:
+            result.append({
+                "type": 'index',
+                "name": item['name'],
+                "secid": item['secid'],
+                "document": 'sync_index'
+            })
+
+        # 添加概念数据
+        for item in DataService.get_concept_block_item_list():
+            result.append({
+                "type": 'concept',
+                "name": item['name'],
+                "secid": '90.' + item['code'],
+                "document": 'sync_concept'
+            })
+
+        _cache['sync_item_list'] = result
 
         return result
 

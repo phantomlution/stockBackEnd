@@ -93,3 +93,18 @@ def get_calendar():
 @flask_response
 def get_recent_open_date_list():
     return DataService.get_recent_open_date_list()
+
+
+@data_api.route('/sync/item/list')
+@flask_response
+def get_sync_item_list():
+    return DataService.get_sync_item_list()
+
+
+@data_api.route('/sync/fragment/deal')
+@flask_response
+def get_sync_item_fragment_deal():
+    secid = request.args.get('secid')
+    _date = request.args.get('date')
+
+    return DataService.get_sync_fragment_deal(secid, _date)
