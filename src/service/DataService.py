@@ -314,17 +314,20 @@ class DataService(object):
         raw_html = get_response(url, encoding='gbk')
         parsed_raw_html = get_parsed_href_html(url, raw_html)
         html = BeautifulSoup(parsed_raw_html, 'html.parser')
-        container = html.select_one("#pop-cont2")
-        if container is None:
-            raise Exception('找不到对应的板块')
-        item_list = container.select("a")
+
         result = []
-        for item in item_list:
-            result.append({
-                "name": item.text,
-                "url": item['href'],
-                "code": item['href'].split('/')[-1].split('.')[0]
-            })
+
+        for container_id in ['#pop-cont1', '#pop-cont2', '#pop-cont3']:
+            container = html.select_one(container_id)
+            if container is None:
+                raise Exception('找不到对应的板块')
+            item_list = container.select("a")
+            for item in item_list:
+                result.append({
+                    "name": item.text,
+                    "url": item['href'],
+                    "code": item['href'].split('/')[-1].split('.')[0]
+                })
 
         return result
 
@@ -495,4 +498,4 @@ class DataService(object):
 
 if __name__ == '__main__':
     # print(DataService().get_fx_live('2019-11-14'))
-    print(DataService.get_recent_open_date_list())
+    print(DataService.get_concept_block_item_list())
