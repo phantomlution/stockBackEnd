@@ -34,19 +34,22 @@ class StockThemeDataJob:
 
         return None
 
+    def update_stock_theme(self, code):
+        theme = self.load_stock_theme(code)
+        if theme is not None:
+            model = {
+                "code": code,
+                "theme": theme
+            }
+            theme_document.update({"code": model.get('code')}, model, True)
+        else:
+            raise Exception('找不到[{code}]的主题'.format(code=code))
+
     async def asynchronize_load_stock_theme(self, task_id, code):
         time.sleep(0.3)
         try:
-            theme = self.load_stock_theme(code)
-            if theme is not None:
-                model = {
-                    "code": code,
-                    "theme": theme
-                }
-                theme_document.update({"code": model.get('code')}, model, True)
-                self.job.success(task_id)
-            else:
-                raise Exception('找不到[{code}]的主题'.format(code=code))
+            self.update_stock_theme(code)
+            self.job.success(task_id)
         except Exception as e:
             self.job.fail(task_id, e)
 
