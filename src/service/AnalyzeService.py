@@ -336,7 +336,7 @@ class AnalyzeService:
     def get_surge_for_short(code, date):
         item = surge_for_short_document.find_one({ "code": code, "date": date }, { "_id": 0})
         if item is None:
-            result = AnalyzeService.analyze_surge_for_short(code[2:], date)
+            result = AnalyzeService.analyze_surge_for_short(code, date)
             model = {
                 "code": code,
                 "date": date,
