@@ -8,6 +8,7 @@ FREQUENCY_ONE_MINUTE = '1min'
 YEAR_AFTER_NEXT_YEAR = datetime.datetime.now().year + 2
 
 
+
 class EastMoneyService:
 
     @staticmethod

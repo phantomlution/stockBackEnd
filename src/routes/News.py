@@ -8,10 +8,22 @@ from src.utils.decorator import flask_response
 news_api = Blueprint('news_api', __name__, url_prefix='/news')
 
 
-@news_api.route('/page')
+@news_api.route('/page/read')
 @flask_response
-def get_news_page():
-    return NewsService.paginate()
+def get_read_news_page():
+    query = {
+        "has_read": True
+    }
+    return NewsService.paginate(query, limit=50)
+
+
+@news_api.route('/page/unread')
+@flask_response
+def get_unread_news_page():
+    query = {
+        "has_read": False
+    }
+    return NewsService.paginate(query)
 
 
 @news_api.route('/mark/read', methods=['PUT'])

@@ -19,13 +19,12 @@ class NewsService:
     @staticmethod
     def mark_read(_id):
         object_id = bson.ObjectId(_id)
-        news_document.update({ "_id": object_id }, { '$set': { "has_read": True } })
+        news_document.update({ "_id": object_id }, { '$set': { "has_read": True, 'subscribe': False } })
 
     @staticmethod
-    def paginate(query={}, page_no=1, page_size=50):
+    def paginate(query, page_no=1, page_size=50, limit=0):
         # python sort 要传入 tuple 数组
-        query['has_read'] = False
-        result = list(news_document.find(query).sort([('subscribe', -1 ), ("create_date", -1)]))
+        result = list(news_document.find(query).sort([('subscribe', -1 ), ("create_date", -1)]).limit(limit))
         news_list = []
         for item in result:
             item['_id'] = str(item['_id'])
