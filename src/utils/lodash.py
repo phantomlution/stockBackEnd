@@ -25,8 +25,8 @@ class lodash:
         return min_item
 
     @staticmethod
-    def diff_in_percent(num1, num2):
-        return round((num1 - num2) / num2 * 100, 2)
+    def diff_in_percent(num1, num2, precision=2):
+        return round((num1 - num2) / num2 * 100, precision)
 
     @staticmethod
     def find_index(_list, callback):

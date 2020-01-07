@@ -11,7 +11,7 @@ class StockSurgeForShortJob:
     def __init__(self):
         # stock_list = StockService.get_stock_pool()
         # stock_list = AnalyzeService.get_stock_list()
-        stock_list = DataProvider().get_stock_list()[629:]
+        stock_list = DataProvider().get_stock_list()[1206:]
         self.job = Job(name='[跌]拉高出货点分析')
         for stock in stock_list:
             if '指数' not in stock['name']:
