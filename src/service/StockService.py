@@ -141,10 +141,35 @@ class StockService:
 
     @staticmethod
     def get_stock_pool():
+
         item_list_cursor = stock_pool_document.aggregate([
-            { '$match': { 'is_delete': False } },
-            { "$sort": { "order": 1 } },
-            { "$project": { "_id": 0 } }
+            {
+                '$match': {
+                    'is_delete': False
+                }
+            },
+            {
+                '$lookup': {
+                    "localField": "code",
+                    "from": "base",
+                    "foreignField": "symbol",
+                    "as": "base"
+                }
+            },
+            {
+              '$unwind': '$base'
+            },
+            {
+                "$sort": {
+                    "order": 1
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    'base._id': 0
+                }
+            }
         ])
         return list(item_list_cursor)
 
@@ -426,4 +451,5 @@ class StockService:
 
 
 if __name__ == '__main__':
-    StockService.get_stock_real_time_trend()
+    result = StockService.get_stock_pool()
+    print(result)
