@@ -6,6 +6,7 @@ from src.service.EastMoneyService import EastMoneyService
 from src.script.job.Job import Job
 from src.service.StockService import StockService
 from src.service.DataService import DataService
+from src.utils.date import get_current_date_str
 
 client = StockService.getMongoInstance()
 
@@ -19,11 +20,13 @@ class DataSyncJob:
             self.job.add(item)
 
     def sync_index_or_concept(self, config):
-        item_list = EastMoneyService.get_index_or_concept_one_minute_tick_data(config['secid'], days=5)
+        today = get_current_date_str()
         document = client.stock[config['document']]
-        for item in item_list:
-            if document.find_one({ "date": item['date'], "secid": config['secid'] }) is None:
-                document.save(item)
+        if document.find_one({"date": today, "secid": config['secid']}) is None:
+            item_list = EastMoneyService.get_index_or_concept_one_minute_tick_data(config['secid'], days=5)
+            for item in item_list:
+                if document.find_one({ "date": item['date'], "secid": config['secid'] }) is None:
+                    document.save(item)
 
     def start(self):
         for task in self.job.task_list:

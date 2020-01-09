@@ -1,7 +1,6 @@
 from src.service.StockService import StockService
 from bson import ObjectId
 from src.utils.date import getCurrentTimestamp
-import time
 client = StockService.getMongoInstance()
 
 custom_event_document = client.stock.custom_event
@@ -81,7 +80,3 @@ class CustomEventService:
         }
 
         custom_event_item_document.insert(model)
-
-if __name__ == '__main__':
-    result = CustomEventService.get_custom_event_list()
-    print(result)
