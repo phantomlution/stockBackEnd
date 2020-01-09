@@ -1,5 +1,7 @@
 from src.service.StockService import StockService
 from bson import ObjectId
+from src.utils.date import getCurrentTimestamp
+import time
 client = StockService.getMongoInstance()
 
 custom_event_document = client.stock.custom_event
@@ -11,7 +13,8 @@ class CustomEventService:
     @staticmethod
     def get_custom_event_list():
         # 返回所有的自定义事件
-        event_list = custom_event_document.find({ "archive": False })
+        event_list = custom_event_document.find({ "archive": False }).sort([('created', -1 )])
+
         result = []
         for event in event_list:
             event['_id'] = str(event['_id'])
@@ -25,6 +28,7 @@ class CustomEventService:
             raise Exception('该事件已存在')
         model = {
             "name": event_name,
+            "created": getCurrentTimestamp(),
             "archive": False # 是否归档
         }
         result = custom_event_document.insert(model)
@@ -77,3 +81,7 @@ class CustomEventService:
         }
 
         custom_event_item_document.insert(model)
+
+if __name__ == '__main__':
+    result = CustomEventService.get_custom_event_list()
+    print(result)
