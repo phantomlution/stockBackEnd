@@ -126,5 +126,5 @@ class StockTradeDataJob:
 
 
 if __name__ == '__main__':
-    stock_code = 'SZ000043'
+    stock_code = 'SZ000019'
     print(StockTradeDataJob().update_stock_data(stock_code))

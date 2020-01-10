@@ -247,7 +247,10 @@ class DataService(object):
         title_item = item.select_one(".zb_word")
         if title_item is None:
             # 经济数据
-            model['title'] = item.select_one(".zb_font span").text
+            title_element = item.select_one('.zb_font span')
+            if title_element is None:
+                title_element = item.select_one('.list_font > span')
+            model['title'] = title_element.text
             model['macro'] = True
 
             value_list = item.select('.nom_bg')
@@ -297,9 +300,10 @@ class DataService(object):
             result.append(model)
 
         # 解析置顶数据项
-        top_item_list = html.select("#isTop li")
+        top_item_list = html.select("#isTop > ul > li")
         for top_item in top_item_list:
-            time_str = top_item.select_one(".fb_time").text
+            time_element = top_item.select_one(".fb_time")
+            time_str = time_element.text
             date_time_str = date_str + ' ' + str.strip(time_str)
             model = DataService.resolve_fx_live_item(top_item, date_time_str)
             model['isTop'] = True
@@ -497,5 +501,5 @@ class DataService(object):
 
 
 if __name__ == '__main__':
-    # print(DataService().get_fx_live('2019-11-14'))
-    print(DataService.get_concept_block_item_list())
+    print(DataService().get_fx_live('2020-01-11'))
+    # print(DataService.get_concept_block_item_list())

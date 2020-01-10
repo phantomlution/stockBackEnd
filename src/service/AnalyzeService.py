@@ -337,9 +337,16 @@ class AnalyzeService:
         item = surge_for_short_document.find_one({ "code": code, "date": date }, { "_id": 0})
         if item is None:
             result = AnalyzeService.analyze_surge_for_short(code, date)
+            if result is None:
+                time = ''
+            else:
+                time = result['time']
             model = {
                 "code": code,
                 "date": date,
+                "time": time,
+                "desc": '',
+                "check": False,  # 是否人工确定
                 "result": result
             }
             surge_for_short_document.insert(model)
