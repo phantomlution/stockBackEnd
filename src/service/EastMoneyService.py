@@ -1,7 +1,9 @@
 from src.utils.date import getCurrentTimestamp, get_ambiguous_date, get_current_date_str
 from src.service.HtmlService import get_response, extract_jsonp
+from src.service.AuthService import AuthService
 import datetime
 from src.utils.lodash import lodash
+import json
 
 FREQUENCY_ONE_MINUTE = '1min'
 
@@ -120,24 +122,34 @@ class EastMoneyService:
 
         response = EastMoneyService.get_response(url, params=params)
 
-        print(response)
-
         kline_list = response['data']['klines']
 
         result = []
 
-        for kline_item in kline_list[-420:]:
+        for kline_item in kline_list:
             item = kline_item.split(',')
-            result.append({
+            model = {
                 "date": item[0],
                 "open": float(item[1]),
                 "close": float(item[2]),
                 "max": float(item[3]),
                 "min": float(item[4]),
                 "amount": float(item[6])
-            })
+            }
+            result.append(model)
 
-        return result
+        EastMoneyService.generate_pre_close(result)
+
+        return result[-420:]
+
+    # 追加 pre_close
+    @staticmethod
+    def generate_pre_close(kline_list):
+        for idx, item in enumerate(kline_list):
+            if idx == 0:
+                item['pre_close'] = item['open']
+            else:
+                item['pre_close'] = kline_list[idx - 1]['close']
 
     @staticmethod
     def _get_hot_money_data():
@@ -157,6 +169,7 @@ class EastMoneyService:
         data['date'] = get_current_date_str()
         return data
 
+    # 获取资金K线（每日数据的净买入= 成交 + 挂单，不太准）
     @staticmethod
     def resolve_hot_money(key, raw):
         '''
@@ -214,9 +227,54 @@ class EastMoneyService:
         else:
             raise Exception('类型错误')
 
+    @staticmethod
+    def get_hot_money_page(market_type, page_no=1, page_size=20):
+        one_million = 100 * 10000
+        url = 'http://dcfm.eastmoney.com/EM_MutiSvcExpandInterface/api/js/get'
+        params = {
+            "type": "HSGTHIS",
+            "filter": "(MarketType=" + str(market_type) + ")",
+            "js": '{"data":(x),"pages":(tp)}',
+            'ps': page_size,
+            'p': page_no,
+            'token': AuthService.get_east_money_token(),
+            'sr': -1,
+            'st': 'DetailDate',
+            'rt': "52625022"
+        }
+        response = get_response(url, params=params)
+        response_json = json.loads(response)
+        result = []
+        for item in response_json['data']:
+            model = {
+                "date": item['DetailDate'].split('T')[0],
+                'pre_close': (item['LSZJLR'] - item['DRCJJME']) * one_million,
+                "amount": (item['MRCJE'] + item['MCCJE']) * one_million
+            }
+            result.append(model)
+        return result
+
+    @staticmethod
+    def get_hu_gu_tong_hot_money():
+        return EastMoneyService.get_hot_money_page('1')
+
+    @staticmethod
+    def get_shen_gu_tong_hot_money():
+        return EastMoneyService.get_hot_money_page('3')
+
+    @staticmethod
+    def get_gang_gu_tong_hu_hot_money():
+        return EastMoneyService.get_hot_money_page('2')
+
+    @staticmethod
+    def get_gang_gu_tong_shen_hot_money():
+        return EastMoneyService.get_hot_money_page('4')
+
+
 
 if __name__ == '__main__':
     # print(EastMoneyService.get_index_or_concept_one_minute_tick_data('1.000001', days=5))
     # print(EastMoneyService.get_latest_hot_money_north())
     # print(EastMoneyService.get_kline('1.000001'))
-    print(EastMoneyService.get_kline('1.601658'))
+    # print(EastMoneyService.get_kline('1.601658'))
+    print(EastMoneyService.get_hot_money_page(page_no=1))

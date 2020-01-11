@@ -35,3 +35,11 @@ class lodash:
                 return idx
 
         return -1
+
+    @staticmethod
+    def find(_list, callback):
+        for item in _list:
+            if callback(item):
+                return item
+
+        return None

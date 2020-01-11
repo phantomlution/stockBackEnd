@@ -3,6 +3,8 @@
 '''
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from src.service.HtmlService import get_response
+import re
 
 
 class AuthService:
@@ -42,3 +44,18 @@ class AuthService:
             cookie_str += cookie['value']
         driver.quit()
         return cookie_str
+
+    @staticmethod
+    def get_east_money_token():
+        url = 'http://data.eastmoney.com/js_001/hsgt/hsgt.js'
+
+        raw_html = get_response(url)
+
+        raw_html = str(raw_html)
+
+        match_obj = re.search(r'&token=([a-zA-Z0-9]+)&', raw_html)
+
+        if match_obj is None:
+            raise Exception('EastMoney token 获取错误')
+
+        return match_obj.groups()[0]

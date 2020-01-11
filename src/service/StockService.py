@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from src.service.HtmlService import get_response, get_html_variable, extract_jsonp
 from src.utils.date import date_str_to_timestamp, getCurrentTimestamp
+from src.service.EastMoneyService import EastMoneyService
 import json
 
 mongo_instance = MongoClient('mongodb://localhost:27017')
@@ -390,7 +391,10 @@ class StockService:
 
     @staticmethod
     def get_history_data(code):
-        return history_document.find_one({"code": code}, {"_id": 0})
+        item = history_document.find_one({"symbol": code}, {"_id": 0})
+        if item is None:
+            return None
+        return item['list']
 
     @staticmethod
     def update_stock_pool_item_info(code):
@@ -424,8 +428,19 @@ class StockService:
 
         return result
 
+    @staticmethod
+    def get_all_item():
+        return list(base_document.find())
+
 
 if __name__ == '__main__':
     # result = StockService.get_hot_money_south()
     # print(result)
-    print('')
+    # print('')
+    hot_money_document = mongo_instance.stock.hotMoney
+    item = hot_money_document.find_one({ "date": '2019-12-24'})
+    result = EastMoneyService.resolve_hot_money('n2s', item)
+    result['symbol'] = 'CAPITAL.SOUTH'
+    result['type'] = 'capital'
+    mongo_instance.stock.sync_capital.insert(result)
+    print(result)

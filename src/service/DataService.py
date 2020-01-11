@@ -460,7 +460,7 @@ class DataService(object):
 
     @staticmethod
     def get_recent_open_date_list():
-        code = 'SH000001'
+        code = '1.000001'
         history = StockService.get_history_data(code)
 
         if history is None or len(history['data']) == 0:
