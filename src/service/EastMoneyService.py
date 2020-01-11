@@ -146,6 +146,8 @@ class EastMoneyService:
     @staticmethod
     def generate_pre_close(kline_list):
         for idx, item in enumerate(kline_list):
+            if item['pre_close'] is not None:
+                continue
             if idx == 0:
                 item['pre_close'] = item['open']
             else:
@@ -214,7 +216,7 @@ class EastMoneyService:
             })
         return {
             "date": actual_date,
-            "list": result
+            "data": result
         }
 
     @staticmethod

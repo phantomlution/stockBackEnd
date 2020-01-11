@@ -20,11 +20,6 @@ class StockTradeDataJob:
         for base in base_list:
             self.job.add(base)
 
-    # 获取资金K线（每日数据的净买入= 成交 + 挂单，不太准）
-    def get_hot_money_kline(self):
-        pass
-
-
     def update_trade_data(self, base):
         model = {
             "symbol": base['symbol'],
@@ -57,21 +52,29 @@ class StockTradeDataJob:
                 if shen_gu_tong_item is None:
                     raise Exception('深股通数据异常')
 
-                price_list = item['list']
+                pre_close = hu_gu_tong_item['pre_close'] + shen_gu_tong_item['pre_close']
+
+                price_list = item['data']
                 for price_item in price_list:
-                    price_item['total'] = price_item['huAmount'] + price_item['shenAmount']
+                    price_item['total'] = pre_close + price_item['huAmount'] + price_item['shenAmount']
+                    # 对齐数据格式
+                    price_item['price'] = price_item['total']
+                    price_item['amount'] = None
 
                 max_item = lodash.max_by(price_list, lambda _item: _item['total'])
                 min_item = lodash.min_by(price_list, lambda _item: _item['total'])
 
-                pre_close = hu_gu_tong_item['pre_close'] + shen_gu_tong_item['pre_close']
+                if 'pre_close' not in item:
+                    # 反向补齐之前的旧数据
+                    item['pre_close'] = pre_close
+                    document.update({ "_id": item['_id']}, item)
 
                 kline_item = {
                     "date": item['date'],
-                    "max": pre_close + max_item['total'],
-                    'min': pre_close + min_item['total'],
-                    "open": pre_close + price_list[0]['total'],
-                    'close': pre_close + price_list[-1]['total'],
+                    "max": max_item['total'],
+                    'min': min_item['total'],
+                    "open": price_list[0]['total'],
+                    'close': price_list[-1]['total'],
                     "pre_close": pre_close,
                     'amount': hu_gu_tong_item['amount'] + shen_gu_tong_item['amount']
                 }
@@ -104,7 +107,7 @@ class StockTradeDataJob:
 
 
 if __name__ == '__main__':
-    stock_code = 'CAPITAL.SOUTH'
+    stock_code = 'CAPITAL.NORTH'
     base = StockService.get_stock_base(stock_code)
     print(StockTradeDataJob().update_trade_data(base))
     # print(StockTradeDataJob().run())
