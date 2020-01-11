@@ -28,8 +28,8 @@ class StockSurgeForShortJob:
             history_item_list = StockService.get_history_data(code)
             if history_item_list is not None:
                 # 分析最近10个交易日的数据
-                for item in history_item_list['data'][-200:]:
-                    _date = item[0]
+                for item in history_item_list[-200:]:
+                    _date = item['date']
                     try:
                         AnalyzeService.get_surge_for_short(code, _date)
                     except Exception as e:
