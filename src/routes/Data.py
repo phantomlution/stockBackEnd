@@ -95,10 +95,10 @@ def get_recent_open_date_list():
     return DataService.get_recent_open_date_list()
 
 
-@data_api.route('/sync/item/list')
+@data_api.route('/search/option')
 @flask_response
-def get_sync_item_list():
-    return DataService.get_sync_item_list()
+def get_search_option_list():
+    return DataService.get_search_option_list()
 
 
 @data_api.route('/sync/fragment/deal')

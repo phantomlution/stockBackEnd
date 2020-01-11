@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from src.service.HtmlService import get_response, get_html_variable, extract_jsonp
-from src.utils.date import date_str_to_timestamp, getCurrentTimestamp, get_current_date_str
+from src.utils.date import date_str_to_timestamp, getCurrentTimestamp
 import json
 
 mongo_instance = MongoClient('mongodb://localhost:27017')
@@ -356,31 +356,6 @@ class StockService:
         restrict_sell_list.reverse()
         base_document.update({"symbol": code}, {'$set': {'restrict_sell_list': restrict_sell_list}}, True)
 
-    @staticmethod
-    def get_hot_money_data():
-        url = 'http://push2.eastmoney.com/api/qt/kamt.rtmin/get'
-        current = getCurrentTimestamp()
-        params = {
-            "fields1": "f1,f2,f3,f4",
-            "fields2": "f51,f52,f53,f54,f55,f56",
-            "cb": "jQuery18304445605268991899_" + str(current),
-            "_": current
-        }
-
-        headers = {
-            "Referer": "http://data.eastmoney.com/hsgt/index.html",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
-        }
-
-        content = get_response(url, params=params, headers=headers)
-        response_json = extract_jsonp(content, params['cb'])
-        if 'data' not in response_json:
-            raise Exception('[北向资金]数据异常')
-
-        data = response_json['data']
-
-        data['date'] = get_current_date_str()
-        return data
 
     # 获取概念板块资金流向
     @staticmethod
@@ -451,5 +426,6 @@ class StockService:
 
 
 if __name__ == '__main__':
-    result = StockService.get_stock_pool()
-    print(result)
+    # result = StockService.get_hot_money_south()
+    # print(result)
+    print('')

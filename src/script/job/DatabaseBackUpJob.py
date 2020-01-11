@@ -11,6 +11,7 @@ class DatabaseBackUpJob:
     def __init__(self):
         self.job = Job(name="数据库备份")
         task_list = [ # 备份的数据库表
+            'base',
             'custom_event',
             'custom_event_item',
             'notification',

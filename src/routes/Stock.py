@@ -5,10 +5,12 @@ from flask import Blueprint, request
 from src.service.StockService import StockService
 from src.assets.DataProvider import DataProvider
 from src.utils.decorator import flask_response
+from src.service.EastMoneyService import EastMoneyService
+from src.service.DataService import DataService
+
 stock_api = Blueprint('stock_api', __name__, url_prefix='/stock')
 
 mongo = StockService.getMongoInstance()
-hot_money_document = mongo.stock.hotMoney
 theme_document = mongo.stock.theme
 theme_market_document = mongo.stock.theme_market
 history_document = mongo.stock.history
@@ -51,12 +53,13 @@ def get_stock_list():
 @flask_response
 def get_hot_money():
     date = request.args.get('date')
+    code = request.args.get('code')
     is_live = request.args.get('live')
 
     if str.lower(is_live) == 'true':
-        result = StockService.get_hot_money_data()
+        result = EastMoneyService.get_latest_hot_money_data(code)
     else:
-        result = hot_money_document.find_one({ "date": date }, { "_id": 0 })
+        result = DataService.get_sync_fragment_deal(code, date)
 
     return result
 

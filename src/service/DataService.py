@@ -14,11 +14,7 @@ session = FuturesSession(max_workers=1)
 
 client = StockService.getMongoInstance()
 financial_calendar_document = client.stock.financial_calendar
-
-_cache = {
-    "sync_item_list": None
-}
-
+base_document = client.stock.base
 
 class DataService(object):
 
@@ -322,18 +318,41 @@ class DataService(object):
         result = []
 
         for container_id in ['#pop-cont1', '#pop-cont2', '#pop-cont3']:
+            cont_no = container_id[-1]
+            if cont_no == '1':
+                cont_name = '行业板块'
+            elif cont_no == '2':
+                cont_name = '概念板块'
+            elif cont_no == '3':
+                cont_name = '地区板块'
+            else:
+                cont_name = ''
+
             container = html.select_one(container_id)
             if container is None:
                 raise Exception('找不到对应的板块')
             item_list = container.select("a")
             for item in item_list:
+                code = item['href'].split('/')[-1].split('.')[0]
+                secid = '90.' + code
                 result.append({
+                    "symbol": secid,
+                    "code": code,
                     "name": item.text,
+                    "type": 'concept',
                     "url": item['href'],
-                    "code": item['href'].split('/')[-1].split('.')[0]
+                    'block': cont_name
                 })
 
         return result
+
+    # 在 base 表中建立板块索引表
+    @staticmethod
+    def update_concept_block_index():
+        concept_block_list = DataService.get_concept_block_item_list()
+        for item in concept_block_list:
+            base_document.update({ "type": 'concept', "symbol": item['symbol']}, item, True)
+
 
     @staticmethod
     def get_concept_block_history(code):
@@ -458,48 +477,55 @@ class DataService(object):
     def get_sync_fragment_deal(secid, _date):
         sync_list = DataService.get_sync_item_list()
         for item in sync_list:
-            if item['secid'] == secid:
-                return client.stock[item['document']].find_one({ "date": _date, "secid": secid }, { "_id": 0 })
+            if item['symbol'] == secid:
+                return client.stock[item['document']].find_one({ "date": _date, "symbol": secid }, { "_id": 0 })
 
         return None
 
     @staticmethod
     def get_sync_item_list():
-        if _cache['sync_item_list'] is not None:
-            return _cache['sync_item_list']
+        sync_item_list = list(base_document.find({ "type": { '$in': ['index', 'concept', 'capital']}}))
+        for item in sync_item_list:
+            item['document'] = 'sync_' + item['type']
+
+        return sync_item_list
+
+    # 获取搜索项
+    @staticmethod
+    def get_search_option_list():
+        result_model = {}
+        item_list = base_document.find({}, { "symbol": 1, "name": 1, 'type': 1 })
+
+        def get_type_label(val):
+            if val == 'index':
+                return '指数'
+            elif val == 'concept':
+                return '板块'
+            elif val == 'capital':
+                return '资金'
+            else:
+                return '股票'
+
+        for item in item_list:
+            _type = item['type']
+            if _type not in result_model:
+                result_model[_type] = {
+                    "label": get_type_label(_type),
+                    "value": _type,
+                    "children": []
+                }
+            result_model[_type]['children'].append({
+                "label": item['name'],
+                "value": item['symbol']
+            })
 
         result = []
-        # 指数
-        index_list = [
-            {
-                "name": '上证指数',
-                "secid": '1.000001'
-            }
-        ]
-
-        # 添加指数
-        for item in index_list:
-            result.append({
-                "type": 'index',
-                "name": item['name'],
-                "secid": item['secid'],
-                "document": 'sync_index'
-            })
-
-        # 添加概念数据
-        for item in DataService.get_concept_block_item_list():
-            result.append({
-                "type": 'concept',
-                "name": item['name'],
-                "secid": '90.' + item['code'],
-                "document": 'sync_concept'
-            })
-
-        _cache['sync_item_list'] = result
+        for key in result_model:
+            result.append(result_model[key])
 
         return result
 
-
 if __name__ == '__main__':
-    print(DataService().get_fx_live('2020-01-11'))
-    # print(DataService.get_concept_block_item_list())
+    # print(DataService().get_fx_live('2020-01-11'))
+    # print(DataService.update_concept_block_index())
+    print(DataService.get_search_option_list())

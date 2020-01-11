@@ -1,7 +1,6 @@
 '''
     每日的任务调度
 '''
-from src.script.job.MarketCapitalDataJob import MarketCapitalDataJob
 from src.script.job.StockBaseDataJob import StockBaseDataJob
 from src.script.job.StockNoticeJob import StockNoticeJob
 from src.script.job.StockThemeDataJob import StockThemeDataJob
@@ -37,7 +36,6 @@ def get_theme_routine():
 
 def get_daily_routine():
     return [
-        'MarketCapitalDataJob',  # 同步当日资金走势
         "DataSyncJob",  # 每日其他数据同步
         'FinancialCalendarJob',  # 同步财经日历
         "BondDataJob",  # 更新债券信息数据源
