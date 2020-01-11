@@ -227,7 +227,7 @@ class AnalyzeService:
             filter_sell_list = list(filter(lambda item: current >= item['timestamp'] >= latest, sell_list))
             if len(filter_sell_list) == 0:
                 continue
-            history_data = StockService.get_history_data(code)['data']
+            history_data = StockService.get_history_data(code)
             point_list = []
             for sell_item in filter_sell_list:
                 # 计算近30日平均成交量
