@@ -463,12 +463,12 @@ class DataService(object):
         code = '1.000001'
         history = StockService.get_history_data(code)
 
-        if history is None or len(history['data']) == 0:
+        if history is None or len(history) == 0:
             raise Exception('获取开市日期失败，数据为空')
 
         result = []
-        for item in history['data']:
-            result.append(item[0])
+        for item in history:
+            result.append(item['date'])
 
         return result
 
