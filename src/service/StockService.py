@@ -410,7 +410,7 @@ class StockService:
             "fields2": "f51,f52,f53,f54,f55,f56,f57,f58",
             "ndays": "1",
             "iscr": "0",
-            "secid": ("1" if code[:2] == 'SH' else "0") + "." + code[2:],
+            "secid": code,
             "cb": "jQuery112409088551039429049_" + str(current),
             "_": str(current),
         }
@@ -423,7 +423,8 @@ class StockService:
             raw_data = item.split(',')
             result.append({
                 "time": raw_data[0].split(' ')[1] + ':00',
-                "price": raw_data[2]
+                "price": float(raw_data[2]),
+                "amount": float(raw_data[6])
             })
 
         return result
