@@ -514,9 +514,13 @@ class DataService(object):
                     "value": _type,
                     "children": []
                 }
+            label = item['name']
+            value = item['symbol']
+            if _type == 'stock':
+                label = label + '(' + value + ')'
             result_model[_type]['children'].append({
-                "label": item['name'],
-                "value": item['symbol']
+                "label": label,
+                "value": value
             })
 
         result = []
