@@ -230,7 +230,7 @@ class EastMoneyService:
             raise Exception('类型错误')
 
     @staticmethod
-    def get_hot_money_page(market_type, page_no=1, page_size=20):
+    def get_hot_money_page(market_type, page_no=1, page_size=200):
         one_million = 100 * 10000
         url = 'http://dcfm.eastmoney.com/EM_MutiSvcExpandInterface/api/js/get'
         params = {
