@@ -8,6 +8,7 @@ from src.utils.FileUtils import generate_static_dir_file
 from src.utils.date import getCurrentTimestamp, date_str_to_timestamp, full_time_format
 import os
 import json
+import bson
 import math
 from src.utils.lodash import lodash
 
@@ -271,7 +272,6 @@ class AnalyzeService:
             raise Exception('{},{}找不到分时成交数据'.format(code, date))
 
         yesterday_close = trade_point_list[0]['price'] + trade_point_list[0]['change']
-        today_close = trade_point_list[-1]['price']
 
         # 中场休息时间
         rest_timestamp = date_str_to_timestamp(date + ' 12:00:00', full_time_format)
@@ -336,7 +336,13 @@ class AnalyzeService:
     def get_surge_for_short(code, date):
         item = surge_for_short_document.find_one({ "code": code, "date": date }, { "_id": 0})
         if item is None:
-            result = AnalyzeService.analyze_surge_for_short(code, date)
+            # 如果提取不到数据，默认为 None
+            try:
+                result = AnalyzeService.analyze_surge_for_short(code, date)
+            except Exception as e:
+                print(e)
+                result = None
+
             if result is None:
                 time = ''
             else:
@@ -351,11 +357,37 @@ class AnalyzeService:
             }
             surge_for_short_document.insert(model)
 
-        item = surge_for_short_document.find_one({ "code": code, "date": date }, { "_id": 0})
+        item = surge_for_short_document.find_one({ "code": code, "date": date })
         if item is None:
             raise Exception('找不到分析结果')
 
+        item['_id'] = str(item['_id'])
         return item
+
+    @staticmethod
+    def update_surge_for_short(params):
+        _id = params['id']
+        _date = params['date']
+        _code = params['code']
+        _time = params['time']
+        _desc = params['desc']
+        _checked = params['check']
+
+        # 强确认 _id, _date, _code 的匹配性
+        item = surge_for_short_document.find_one({ "_id": bson.ObjectId(_id) })
+
+        if item is None:
+            raise Exception('找不到对应数据')
+
+        if item['date'] != _date or item['code'] != _code:
+            raise Exception('数据不匹配')
+
+        update_model = {
+            'time': _time,
+            'desc': _desc,
+            'check': _checked
+        }
+        surge_for_short_document.update({ "_id": bson.ObjectId(_id)}, { '$set': update_model })
 
     # 插入股票代码到临时表
     @staticmethod

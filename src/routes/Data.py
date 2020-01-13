@@ -6,7 +6,8 @@ from flask import Blueprint, request
 from src.service.StockService import StockService
 from src.service.DataService import DataService
 from src.utils.decorator import flask_response
-from src.script.extractor.centualBank import extractAllCentualBank
+from src.service.FxService import FxService
+from src.service.AnalyzeService import AnalyzeService
 data_api = Blueprint('data_api', __name__, url_prefix='/data')
 
 mongo = StockService.getMongoInstance()
@@ -32,12 +33,6 @@ def get_concept_block_ranking():
     if ranking_item is None:
         raise Exception('没有对应的数据')
     return ranking_item['ranking']
-
-
-@data_api.route('/centralBank', methods=['GET'])
-@flask_response
-def get_central_bank_financial_info():
-    return extractAllCentualBank()
 
 
 @data_api.route('/shibor', methods=['GET'])
@@ -108,3 +103,19 @@ def get_sync_item_fragment_deal():
     _date = request.args.get('date')
 
     return DataService.get_sync_fragment_deal(secid, _date)
+
+
+# 获取商品报价（主要用于显示初始化，读取历史价位）
+@data_api.route('/fx/quote')
+@flask_response
+def get_fx_quote():
+    code = request.args.get('code')
+    return FxService.get_quote(code)
+
+
+# 获取央行会议信息
+@data_api.route('/fx/centralBank/schedule', methods=['GET'])
+@flask_response
+def get_central_bank_financial_info():
+    return FxService.get_central_bank_schedule_list()
+
