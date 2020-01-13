@@ -30,7 +30,7 @@ class StockTradeDataJob:
             secid = base['secid']
             model['list'] = EastMoneyService.get_kline(secid)
             history_document.update({ "symbol": base['symbol']}, model, True)
-        elif base['type'] in 'capital':
+        elif base['type'] == 'capital':
             # 手动生成kline
             document = client.stock['sync_capital']
             item_list = document.find({ "symbol": base['symbol'] }).sort([('date', -1)]).limit(200)
@@ -107,7 +107,7 @@ class StockTradeDataJob:
 
 
 if __name__ == '__main__':
-    stock_code = 'CAPITAL.NORTH'
-    base = StockService.get_stock_base(stock_code)
-    print(StockTradeDataJob().update_trade_data(base))
-    # print(StockTradeDataJob().run())
+    # stock_code = 'CAPITAL.NORTH'
+    # base = StockService.get_stock_base(stock_code)
+    # print(StockTradeDataJob().update_trade_data(base))
+    StockTradeDataJob().run()

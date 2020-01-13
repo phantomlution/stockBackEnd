@@ -38,11 +38,17 @@ class DatabaseBackUpJob:
 
     def start(self):
         db_name = 'stock'
-        back_up_path = '/Users/yixiaoxiao/Documents/db_backup/'
-        for task in self.job.task_list:
+
+        cache_dir = '/Users/yixiaoxiao/mongo_backup/'
+        zip_file_uri = '/Users/yixiaoxiao/Documents/mongo_backup.zip'
+
+        for idx, task in enumerate(self.job.task_list):
             try:
                 table_name = task['raw']
-                os.system('mongoexport --quiet -h localhost -d ' + db_name + ' -c ' + table_name + '  -o ' + back_up_path + table_name + '.json')
+                os.system('mongoexport --quiet -h localhost -d ' + db_name + ' -c ' + table_name + '  -o ' + cache_dir + table_name + '.json')
+                if idx == (len(self.job.task_list) - 1):
+                    os.system('cd ' + cache_dir + ';zip -r -q ' + zip_file_uri + ' .')
+                    os.system('rm -f ' + cache_dir + '*')
                 self.job.success(task['id'])
             except Exception as e:
                 self.job.fail(task['id'], e)
