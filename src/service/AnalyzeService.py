@@ -2,7 +2,6 @@
     专门用于做统计分析
 '''
 from src.service.StockService import StockService
-from src.assets.DataProvider import DataProvider
 from src.service.FinancialService import get_history_fragment_trade_data
 from src.utils.FileUtils import generate_static_dir_file
 from src.utils.date import getCurrentTimestamp, date_str_to_timestamp, full_time_format
@@ -67,7 +66,7 @@ class AnalyzeService:
     @staticmethod
     def analyze_profit_point():
         result = []
-        stock_list = DataProvider().get_stock_list()
+        stock_list = StockService.get_stock_list()
         for stock in stock_list:
             stock_base = StockService.get_stock_base(stock['code'])
             code = stock_base['symbol']
@@ -100,7 +99,7 @@ class AnalyzeService:
     @staticmethod
     def get_price_break_point():
         result= []
-        stock_list = DataProvider().get_stock_list()
+        stock_list = StockService.get_stock_list()
         # stock_list = [{
         #     "code": 'SH600242'
         # }]
@@ -209,7 +208,7 @@ class AnalyzeService:
 
     @staticmethod
     def get_low_amount_restrict_sell():
-        stock_list = DataProvider().get_stock_list()
+        stock_list = StockService.get_stock_list()
 
         current = getCurrentTimestamp() + 1 * 24 * 60 * 60 * 1000
         latest = current - 90 * 24 * 60 * 60 * 1000

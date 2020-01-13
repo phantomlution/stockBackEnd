@@ -6,7 +6,6 @@
 from src.script.job.Job import Job
 from src.utils.sessions import FuturesSession
 from src.service.StockService import StockService
-from src.assets.DataProvider import DataProvider
 import asyncio
 
 client = StockService.getMongoInstance()
@@ -17,7 +16,7 @@ session = FuturesSession(max_workers=1)
 
 class StockBondNoticeUpdateJob:
     def __init__(self):
-        stock_list = DataProvider().get_stock_list()
+        stock_list = StockService.get_stock_list()
         self.job = Job(name='股票-债券公告关联')
         for stock in stock_list:
             self.job.add(stock)

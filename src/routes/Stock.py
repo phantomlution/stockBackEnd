@@ -3,7 +3,6 @@
 '''
 from flask import Blueprint, request
 from src.service.StockService import StockService
-from src.assets.DataProvider import DataProvider
 from src.utils.decorator import flask_response
 from src.service.EastMoneyService import EastMoneyService
 from src.service.DataService import DataService
@@ -46,7 +45,7 @@ def get_trade_data():
 @stock_api.route('/list')
 @flask_response
 def get_stock_list():
-    return DataProvider().get_stock_list()
+    return StockService.get_stock_list()
 
 
 @stock_api.route('/capital/hotMoney')

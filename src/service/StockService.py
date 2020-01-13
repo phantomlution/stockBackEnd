@@ -285,7 +285,7 @@ class StockService:
     # 获取公司的所有子公司
     @staticmethod
     def get_all_company(code):
-        stock_base = base_document.find_one({"symbol": code})
+        stock_base = StockService.get_stock_base(code)
         company_name_list = [
             stock_base['company']['org_name_cn']
         ]
@@ -433,15 +433,19 @@ class StockService:
     def get_all_item():
         return list(base_document.find())
 
+    @staticmethod
+    def get_stock_list():
+        result = []
+        for item in base_document.find({ 'type': 'stock' }):
+            result.append({
+                "code": item['symbol'],
+                "name": item['name']
+            })
+
+        return result
+
 
 if __name__ == '__main__':
     # result = StockService.get_hot_money_south()
     # print(result)
-    # print('')
-    hot_money_document = mongo_instance.stock.hotMoney
-    item = hot_money_document.find_one({ "date": '2019-12-24'})
-    result = EastMoneyService.resolve_hot_money('n2s', item)
-    result['symbol'] = 'CAPITAL.SOUTH'
-    result['type'] = 'capital'
-    mongo_instance.stock.sync_capital.insert(result)
-    print(result)
+    print(StockService.get_stock_list())

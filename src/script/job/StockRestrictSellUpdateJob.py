@@ -1,7 +1,6 @@
 '''
     关联股票限售信息
 '''
-from src.assets.DataProvider import DataProvider
 from src.script.job.Job import Job
 from src.service.StockService import StockService
 import time
@@ -14,7 +13,7 @@ base_document = client.stock.base
 class StockRestrictSellUpdateJob:
 
     def __init__(self):
-        stock_list = DataProvider().get_stock_list()
+        stock_list = StockService.get_stock_list()
 
         self.cookie = None
         self.job = Job(name='关联股票限售信息')

@@ -4,7 +4,6 @@
 '''
 from src.service.HtmlService import get_response, extract_table
 from bs4 import BeautifulSoup
-from src.assets.DataProvider import DataProvider
 from src.script.job.Job import Job
 from src.service.StockService import StockService
 import time
@@ -19,7 +18,7 @@ search_base = 'https://www.qichacha.com'
 class StockSubCompanyUpdateJob:
 
     def __init__(self):
-        stock_list = DataProvider().get_stock_list()
+        stock_list = StockService.get_stock_list()
         self.cookie = None
         self.job = Job(name='关联子公司数据同步')
         self.request_interval = 2

@@ -5,7 +5,6 @@
 '''
 from src.script.job.Job import Job
 from src.service.StockService import StockService
-from src.assets.DataProvider import DataProvider
 
 client = StockService.getMongoInstance()
 base_document = client.stock.base
@@ -15,7 +14,7 @@ theme_market_document = client.stock.theme_market
 
 class StockThemeUpdateJob:
     def __init__(self):
-        stock_list = DataProvider().get_stock_list()
+        stock_list = StockService.get_stock_list()
         self.job = Job(name='股票-主题更新')
         self.market_map = {}
         for stock in stock_list:

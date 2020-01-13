@@ -5,7 +5,6 @@ from src.script.job.Job import Job
 from src.utils.sessions import FuturesSession
 import json
 from src.service.StockService import StockService
-from src.assets.DataProvider import DataProvider
 from src.service.AuthService import AuthService
 import time
 import asyncio
@@ -23,7 +22,7 @@ class StockBaseDataJob:
             'Origin': 'https://xueqiu.com',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
         }
-        stock_list = DataProvider().get_stock_list()
+        stock_list = StockService.get_stock_list()
         self.job = Job(name='股票基本信息')
         for stock in stock_list:
             self.job.add(stock)
