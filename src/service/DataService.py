@@ -503,6 +503,8 @@ class DataService(object):
                 return '板块'
             elif val == 'capital':
                 return '资金'
+            elif val == 'coin':
+                return '虚拟货币'
             else:
                 return '股票'
 
@@ -528,6 +530,15 @@ class DataService(object):
             result.append(result_model[key])
 
         return result
+
+    @staticmethod
+    def get_base(code):
+        item = base_document.find_one({ 'symbol': code })
+        if item is None:
+            raise Exception('找不到对应的信息{}'.format(code))
+        item['_id'] = str(item['_id'])
+        return item
+
 
 if __name__ == '__main__':
     # print(DataService().get_fx_live('2020-01-11'))

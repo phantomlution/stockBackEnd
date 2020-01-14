@@ -4,6 +4,9 @@
 from src.service.HtmlService import get_response
 from bs4 import BeautifulSoup
 from src.utils.extractor import Extractor
+from src.utils.date import format_timestamp
+from src.utils.DataUtils import DataUtils
+from src.service.DataService import DataService
 import json
 
 bank_list = [
@@ -79,6 +82,23 @@ class FxService:
         return result
 
     @staticmethod
+    def get_response(url, params={}):
+        params['st'] = '0.8183158721255273'
+        headers = {
+            'Host': 'api-q.fx678.com',
+            'Origin': 'https://quote.fx678.com',
+            'Referer': 'https://quote.fx678.com/HQApi/XAU'
+        }
+        raw_response = get_response(url, params=params, headers=headers)
+
+        result = json.loads(raw_response)
+
+        if 's' not in result or result['s'] != 'ok':
+            raise Exception('数据获取失败')
+
+        return result
+
+    @staticmethod
     def get_quote(item):
         item = str.upper(item)
         url = 'https://api-q.fx678.com/getQuote.php'
@@ -86,16 +106,9 @@ class FxService:
         params = {
             "exchName": 'WGJS',
             "symbol": item,
-            'st': '0.8183158721255273'
         }
 
-        headers = {
-            'Host': 'api-q.fx678.com',
-            'Origin': 'https://quote.fx678.com',
-            'Referer': 'https://quote.fx678.com/HQApi/XAU'
-        }
-        raw_response = get_response(url, params=params, headers=headers)
-        result = json.loads(raw_response)
+        result = FxService.get_response(url, params)
 
         if result['s'] != 'ok':
             raise Exception('获取{}失败'.format(item))
@@ -106,7 +119,43 @@ class FxService:
             'pre_close': float(result['p'][0])
         }
 
+    @staticmethod
+    def get_kline(code):
+        base = DataService.get_base(code)
+        _type = base['type']
+        url = 'https://api-q.fx678.com/histories.php'
+
+        params = {
+            'symbol': code,
+            'limit': '200',
+            'resolution': 'D',
+        }
+        if _type == 'coin':
+            params['codeType'] = '5803'
+        else:
+            raise Exception('类型未定义')
+
+        response = FxService.get_response(url, params)
+
+        result = []
+
+        for idx, time in enumerate(response['t']):
+            model = {
+                'date': format_timestamp(response['t'][idx] * 1000),
+                'close': response['c'][idx],
+                'open': response['o'][idx],
+                'max': response['h'][idx],
+                'min': response['l'][idx],
+                'volume': response['v'][idx],
+                'amount': None
+            }
+            result.append(model)
+
+        DataUtils.generate_pre_close(result)
+
+        return result
 
 if __name__ == '__main__':
-    result = FxService.get_quote('xau')
+    result = FxService.get_kline('BTCUSD')
+    # result = FxService.get_quote('xau')
     print(result)

@@ -15,23 +15,6 @@ theme_market_document = mongo.stock.theme_market
 history_document = mongo.stock.history
 
 
-@stock_api.route('/detail', methods=['GET'])
-@flask_response
-def detail():
-    code = request.args.get('code')
-    return {
-        "base": StockService.get_stock_base(code),
-        "data": StockService.get_history_data(code)
-    }
-
-
-@stock_api.route('/base', methods=['GET'])
-@flask_response
-def get_stock_base():
-    code = request.args.get('code')
-    return StockService.get_stock_base(code)
-
-
 @stock_api.route('/trade/data')
 @flask_response
 # 获取指定交易日的交易数据

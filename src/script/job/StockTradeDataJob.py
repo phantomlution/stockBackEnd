@@ -6,16 +6,18 @@ from src.utils.sessions import FuturesSession
 from src.service.StockService import StockService
 from src.service.EastMoneyService import EastMoneyService
 from src.utils.lodash import lodash
+from src.utils.DataUtils import DataUtils
 import asyncio
 
 client = StockService.getMongoInstance()
 history_document = client.stock.history
+base_document = client.stock.base
 session = FuturesSession(max_workers=1)
 
 
 class StockTradeDataJob:
     def __init__(self):
-        base_list = StockService.get_all_item()
+        base_list = base_document.find({ 'source': 'eastMoney'})
         self.job = Job(name='交易数据同步')
         for base in base_list:
             self.job.add(base)
@@ -79,7 +81,7 @@ class StockTradeDataJob:
                     'amount': hu_gu_tong_item['amount'] + shen_gu_tong_item['amount']
                 }
                 result.append(kline_item)
-            EastMoneyService.generate_pre_close(result)
+            DataUtils.generate_pre_close(result)
             model['list'] = result
             history_document.update({ "symbol": base['symbol']}, model, True)
         else:

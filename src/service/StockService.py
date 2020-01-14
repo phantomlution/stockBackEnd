@@ -1,7 +1,6 @@
 from pymongo import MongoClient
 from src.service.HtmlService import get_response, get_html_variable, extract_jsonp
 from src.utils.date import date_str_to_timestamp, getCurrentTimestamp
-from src.service.EastMoneyService import EastMoneyService
 import json
 
 mongo_instance = MongoClient('mongodb://localhost:27017')
@@ -428,10 +427,6 @@ class StockService:
             })
 
         return result
-
-    @staticmethod
-    def get_all_item():
-        return list(base_document.find())
 
     @staticmethod
     def get_stock_list():

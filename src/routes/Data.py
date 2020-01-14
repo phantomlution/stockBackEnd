@@ -7,7 +7,6 @@ from src.service.StockService import StockService
 from src.service.DataService import DataService
 from src.utils.decorator import flask_response
 from src.service.FxService import FxService
-from src.service.AnalyzeService import AnalyzeService
 data_api = Blueprint('data_api', __name__, url_prefix='/data')
 
 mongo = StockService.getMongoInstance()
@@ -118,4 +117,25 @@ def get_fx_quote():
 @flask_response
 def get_central_bank_financial_info():
     return FxService.get_central_bank_schedule_list()
+
+
+@data_api.route('/base', methods=['GET'])
+@flask_response
+def get_base():
+    code = request.args.get('code')
+    return DataService.get_base(code)
+
+
+# 获取k线
+@data_api.route('/kline', methods=['GET'])
+@flask_response
+def get_kline():
+    code = request.args.get('code')
+    base = DataService.get_base(code)
+    source = base['source']
+    if source == 'fx':
+        return FxService.get_kline(code)
+    else:
+        return StockService.get_history_data(code)
+
 
