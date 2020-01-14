@@ -75,22 +75,10 @@ class DataService:
 
         return result
 
+    @staticmethod
+    def get_concept_block_ranking(date_list):
+        return DatabaseService.get_concept_block_ranking(date_list)
+
+
 if __name__ == '__main__':
-    url = 'https://quote.fx678.com/exchange/WH'
-    raw_html = get_response(url)
-    html = BeautifulSoup(raw_html, 'html.parser')
-    client = DatabaseService.get_mongo_instance()
-    for item in html.select('a.mar_name'):
-        name = str.strip(item.text)
-        if name == '美元指数' or name == '比特币美元':
-            continue
-        name = name[:2] + '兑' + name[2:]
-        code = item['href'].split('/')[-1]
-        model = {
-            "name": name,
-            'symbol': code,
-            'source': 'fx',
-            'type': 'exchange'
-        }
-        # client.stock.base.insert(model)
-        print(model)
+    print('')

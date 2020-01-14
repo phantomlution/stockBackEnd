@@ -24,17 +24,6 @@ def get_concept_block_data():
     return StockService.get_concept_block()
 
 
-@data_api.route('/block/concept/ranking')
-@flask_response
-# 概念板块每日排行榜
-def get_concept_block_ranking():
-    date = request.args.get('date')
-    ranking_item = concept_block_ranking_document.find_one({"date": date})
-    if ranking_item is None:
-        raise Exception('没有对应的数据')
-    return ranking_item['ranking']
-
-
 @data_api.route('/shibor', methods=['GET'])
 @flask_response
 def get_financial_shibor():
@@ -110,6 +99,14 @@ def get_sync_item_fragment_deal():
 @flask_response
 def get_central_bank_financial_info():
     return FxWorker.get_central_bank_schedule_list()
+
+
+@data_api.route('/concept/ranking', methods=['PUT'])
+@flask_response
+def get_concept_block_ranking():
+    params = request.get_json()
+    date_list = params['dateList']
+    return DataService.get_concept_block_ranking(date_list)
 
 
 @data_api.route('/base', methods=['GET'])
