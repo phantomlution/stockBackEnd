@@ -342,6 +342,8 @@ class DataWorker(object):
                     "name": item.text,
                     "type": 'concept',
                     "url": item['href'],
+                    'source': 'eastMoney',
+                    'secid': secid,
                     'block': cont_name
                 })
 
@@ -463,4 +465,5 @@ class DataWorker(object):
 if __name__ == '__main__':
     # print(DataWorker().get_fx_live('2020-01-11'))
     # print(DataWorker.update_concept_block_index())
-    print(DataWorker.get_search_option_list())
+    # print(DataWorker.get_search_option_list())
+    DataWorker.update_concept_block_index()
