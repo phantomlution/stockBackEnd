@@ -2,7 +2,7 @@
      数据库部分表备份
 '''
 from src.script.job.Job import Job
-from src.service.DataService import DataService
+from src.service.DataWorker import DataWorker
 import os
 
 
@@ -28,7 +28,7 @@ class DatabaseBackUpJob:
 
     def get_other_table(self):
         other_table = []
-        item_list = DataService.get_sync_item_list()
+        item_list = DataWorker.get_sync_item_list()
         for item in item_list:
             table_name = item['document']
             if table_name not in other_table:

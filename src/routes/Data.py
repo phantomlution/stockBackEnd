@@ -5,8 +5,9 @@
 from flask import Blueprint, request
 from src.service.StockService import StockService
 from src.service.DataService import DataService
+from src.service.DataWorker import DataWorker
 from src.utils.decorator import flask_response
-from src.service.FxService import FxService
+from src.service.FxWorker import FxWorker
 data_api = Blueprint('data_api', __name__, url_prefix='/data')
 
 mongo = StockService.getMongoInstance()
@@ -39,7 +40,7 @@ def get_concept_block_ranking():
 def get_financial_shibor():
     start = request.args.get('start')
     end = request.args.get('end')
-    return DataService.get_shibor_data(start, end)
+    return DataWorker.get_shibor_data(start, end)
 
 
 @data_api.route('/estate/date/list', methods=['GET'])
@@ -65,7 +66,7 @@ def get_estate_data():
 @flask_response
 def get_country_stat():
     code = request.args.get('code')
-    return DataService.get_stat_info(code)
+    return DataWorker.get_stat_info(code)
 
 
 @data_api.route('/huitong/index')
@@ -79,14 +80,14 @@ def get_huitong_index_list():
 @flask_response
 def get_calendar():
     _date = request.args.get('date')
-    return DataService.get_financial_event_calendar(_date)
+    return DataWorker.get_financial_event_calendar(_date)
 
 
 # 获取最近的市场交易日列表，目前按照history表中上证指数的数据点个数
 @data_api.route('/recent/market/open')
 @flask_response
 def get_recent_open_date_list():
-    return DataService.get_recent_open_date_list()
+    return DataWorker.get_recent_open_date_list()
 
 
 @data_api.route('/search/option')
@@ -101,22 +102,14 @@ def get_sync_item_fragment_deal():
     secid = request.args.get('secid')
     _date = request.args.get('date')
 
-    return DataService.get_sync_fragment_deal(secid, _date)
-
-
-# 获取商品报价（主要用于显示初始化，读取历史价位）
-@data_api.route('/fx/quote')
-@flask_response
-def get_fx_quote():
-    code = request.args.get('code')
-    return FxService.get_quote(code)
+    return DataWorker.get_sync_fragment_deal(secid, _date)
 
 
 # 获取央行会议信息
 @data_api.route('/fx/centralBank/schedule', methods=['GET'])
 @flask_response
 def get_central_bank_financial_info():
-    return FxService.get_central_bank_schedule_list()
+    return FxWorker.get_central_bank_schedule_list()
 
 
 @data_api.route('/base', methods=['GET'])
@@ -131,11 +124,14 @@ def get_base():
 @flask_response
 def get_kline():
     code = request.args.get('code')
-    base = DataService.get_base(code)
-    source = base['source']
-    if source == 'fx':
-        return FxService.get_kline(code)
-    else:
-        return StockService.get_history_data(code)
+    return DataService.get_kline(code)
+
+
+# 获取商品报价（主要用于显示初始化，读取历史价位）
+@data_api.route('/quote')
+@flask_response
+def get_fx_quote():
+    code = request.args.get('code')
+    return DataService.get_quote(code)
 
 

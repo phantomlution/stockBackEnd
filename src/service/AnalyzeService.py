@@ -5,6 +5,7 @@ from src.service.StockService import StockService
 from src.service.FinancialService import get_history_fragment_trade_data
 from src.utils.FileUtils import generate_static_dir_file
 from src.utils.date import getCurrentTimestamp, date_str_to_timestamp, full_time_format
+from src.service.DatabaseService import DatabaseService
 import os
 import json
 import bson
@@ -227,7 +228,7 @@ class AnalyzeService:
             filter_sell_list = list(filter(lambda item: current >= item['timestamp'] >= latest, sell_list))
             if len(filter_sell_list) == 0:
                 continue
-            history_data = StockService.get_history_data(code)
+            history_data = DatabaseService.get_history_data(code)
             point_list = []
             for sell_item in filter_sell_list:
                 # 计算近30日平均成交量

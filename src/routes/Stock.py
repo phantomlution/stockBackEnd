@@ -4,8 +4,8 @@
 from flask import Blueprint, request
 from src.service.StockService import StockService
 from src.utils.decorator import flask_response
-from src.service.EastMoneyService import EastMoneyService
-from src.service.DataService import DataService
+from src.service.EastMoneyWorker import EastMoneyWorker
+from src.service.DataWorker import DataWorker
 
 stock_api = Blueprint('stock_api', __name__, url_prefix='/stock')
 
@@ -39,9 +39,9 @@ def get_hot_money():
     is_live = request.args.get('live')
 
     if str.lower(is_live) == 'true':
-        result = EastMoneyService.get_latest_hot_money_data(code)
+        result = EastMoneyWorker.get_latest_hot_money_data(code)
     else:
-        result = DataService.get_sync_fragment_deal(code, date)
+        result = DataWorker.get_sync_fragment_deal(code, date)
 
     return result
 

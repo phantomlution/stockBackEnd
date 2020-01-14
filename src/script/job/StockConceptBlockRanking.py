@@ -3,7 +3,8 @@
 '''
 from src.script.job.Job import Job
 from src.service.StockService import StockService
-from src.service.DataService import DataService
+from src.service.DataWorker import DataWorker
+from src.service.EastMoneyWorker import EastMoneyWorker
 
 client = StockService.getMongoInstance()
 concept_block_ranking_document = client.stock.concept_block_ranking
@@ -24,8 +25,9 @@ class StockConceptBlockRanking:
             concept_code = concept_block['code']
             concept_name = concept_block['name']
             concept_url = concept_block['url']
-            history_data = DataService.get_concept_block_history(concept_code)
+            history_data = EastMoneyWorker.get_kline('90.' + concept_code)
             for history_data_item in history_data:
+                history_data_item['percent'] = round((history_data_item['close'] - history_data_item['pre_close']) / history_data_item['pre_close'] * 100, 2)
                 date_str = history_data_item['date']
                 if date_str not in data_map:
                     data_map[date_str] = []
@@ -47,7 +49,7 @@ class StockConceptBlockRanking:
     def start(self):
         for task in self.job.task_list:
             # 获取概念板块
-            concept_block_list = DataService.get_concept_block_item_list()
+            concept_block_list = DataWorker.get_concept_block_item_list()
 
             result = self.get_concept_block_data(concept_block_list)
 

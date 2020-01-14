@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from src.utils.extractor import Extractor
 from src.utils.date import format_timestamp
 from src.utils.DataUtils import DataUtils
-from src.service.DataService import DataService
+from src.service.DatabaseService import DatabaseService
 import json
 
 bank_list = [
@@ -65,7 +65,7 @@ def get_central_bank_schedule(model):
     return result
 
 
-class FxService:
+class FxWorker:
 
     # 提取各国央行的会议事件节点
     @staticmethod
@@ -108,7 +108,7 @@ class FxService:
             "symbol": item,
         }
 
-        result = FxService.get_response(url, params)
+        result = FxWorker.get_response(url, params)
 
         if result['s'] != 'ok':
             raise Exception('获取{}失败'.format(item))
@@ -121,7 +121,7 @@ class FxService:
 
     @staticmethod
     def get_kline(code):
-        base = DataService.get_base(code)
+        base = DatabaseService.get_base(code)
         _type = base['type']
         url = 'https://api-q.fx678.com/histories.php'
 
@@ -132,10 +132,12 @@ class FxService:
         }
         if _type == 'coin':
             params['codeType'] = '5803'
+        elif _type == 'exchange':
+            params['codeType'] = '8100'
         else:
             raise Exception('类型未定义')
 
-        response = FxService.get_response(url, params)
+        response = FxWorker.get_response(url, params)
 
         result = []
 
@@ -155,7 +157,8 @@ class FxService:
 
         return result
 
+
 if __name__ == '__main__':
-    result = FxService.get_kline('BTCUSD')
-    # result = FxService.get_quote('xau')
+    result = FxWorker.get_kline('BTCUSD')
+    # result = FxWorker.get_quote('xau')
     print(result)

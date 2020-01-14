@@ -389,13 +389,6 @@ class StockService:
         return concept_list
 
     @staticmethod
-    def get_history_data(code):
-        item = history_document.find_one({"symbol": code}, {"_id": 0})
-        if item is None:
-            return None
-        return item['list']
-
-    @staticmethod
     def update_stock_pool_item_info(code):
         StockService.update_stock_pre_release(code)
         StockService.update_stock_restricted_sell(code)

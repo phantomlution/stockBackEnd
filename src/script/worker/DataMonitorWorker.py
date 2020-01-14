@@ -1,7 +1,7 @@
 '''
     数据变动监听
 '''
-from src.service.DataService import DataService
+from src.service.DataWorker import DataWorker
 from src.service.NotificationService import NotificationService
 from src.service.LogService import LogService
 
@@ -12,7 +12,7 @@ class DataMonitorWorker:
         title = 'CNN恐慌指数更新'
 
         try:
-            index_model = DataService.get_cnn_fear_greed_index()
+            index_model = DataWorker.get_cnn_fear_greed_index()
 
             model = {
                 "title": title,
@@ -29,7 +29,7 @@ class DataMonitorWorker:
         title = '美债收益率倒挂'
 
         try:
-            yield_model = DataService.get_american_securities_yield()
+            yield_model = DataWorker.get_american_securities_yield()
             biding = yield_model['data']
             ten_year_biding = biding['10Y']
 
@@ -58,7 +58,7 @@ class DataMonitorWorker:
         title = '央行公开市场操作'
 
         try:
-            operation_list = DataService.get_latest_central_bank_open_market_operation()
+            operation_list = DataWorker.get_latest_central_bank_open_market_operation()
             for operation in operation_list:
                 model = {
                     "title": title,
@@ -75,7 +75,7 @@ class DataMonitorWorker:
     def update_lpr_biding_change(self):
         title = 'LPR报价变动'
         try:
-            biding = DataService.get_latest_lpr_biding()
+            biding = DataWorker.get_latest_lpr_biding()
             model = {
                 "title": title,
                 "html": True,
@@ -91,7 +91,7 @@ class DataMonitorWorker:
     def update_market_suspend_notice(self):
         title = '休市日期提醒'
         try:
-            notice_list = DataService.get_suspend_notice()
+            notice_list = DataWorker.get_suspend_notice()
             for notice in notice_list:
                 model = {
                     "title": title,

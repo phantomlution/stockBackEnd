@@ -4,6 +4,7 @@
 from src.script.job.Job import Job
 from src.service.StockService import StockService
 from src.service.AnalyzeService import AnalyzeService
+from src.service.DatabaseService import DatabaseService
 
 
 class StockSurgeForShortJob:
@@ -24,7 +25,7 @@ class StockSurgeForShortJob:
             stock = task['raw']
             task_id = task["id"]
             code = stock.get('code')
-            history_item_list = StockService.get_history_data(code)
+            history_item_list = DatabaseService.get_history_data(code)
             if history_item_list is not None:
                 # 分析最近10个交易日的数据
                 for item in history_item_list[-200:]:

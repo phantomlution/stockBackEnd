@@ -11,7 +11,7 @@ FREQUENCY_ONE_MINUTE = '1min'
 YEAR_AFTER_NEXT_YEAR = datetime.datetime.now().year + 2
 
 
-class EastMoneyService:
+class EastMoneyWorker:
 
     @staticmethod
     def get_response(url, params):
@@ -35,7 +35,7 @@ class EastMoneyService:
         result = []
         model = None
 
-        kline = EastMoneyService.get_kline(secid)
+        kline = EastMoneyWorker.get_kline(secid)
 
         for trend in item_list:
             item = trend.split(',')
@@ -87,7 +87,7 @@ class EastMoneyService:
             'ndays': days
         }
 
-        response = EastMoneyService.get_response(url, params)
+        response = EastMoneyWorker.get_response(url, params)
 
         data = response['data']
 
@@ -103,7 +103,7 @@ class EastMoneyService:
 
             }
 
-        result = EastMoneyService.group_by_day(secid, name, trends_list, callback)
+        result = EastMoneyWorker.group_by_day(secid, name, trends_list, callback)
 
         return result
 
@@ -121,7 +121,7 @@ class EastMoneyService:
             "end": str(YEAR_AFTER_NEXT_YEAR) + "0101"
         }
 
-        response = EastMoneyService.get_response(url, params=params)
+        response = EastMoneyWorker.get_response(url, params=params)
 
         kline_list = response['data']['klines']
 
@@ -152,7 +152,7 @@ class EastMoneyService:
             "fields2": "f51,f52,f53,f54,f55,f56",
         }
 
-        response_json = EastMoneyService.get_response(url, params=params)
+        response_json = EastMoneyWorker.get_response(url, params=params)
         if 'data' not in response_json:
             raise Exception('[北向资金]数据异常')
 
@@ -211,11 +211,11 @@ class EastMoneyService:
 
     @staticmethod
     def get_latest_hot_money_data(secid):
-        raw_data = EastMoneyService._get_hot_money_data()
+        raw_data = EastMoneyWorker._get_hot_money_data()
         if secid == 'CAPITAL.NORTH':
-            return EastMoneyService.resolve_hot_money('s2n', raw_data)
+            return EastMoneyWorker.resolve_hot_money('s2n', raw_data)
         elif secid == 'CAPITAL.SOUTH':
-            return EastMoneyService.resolve_hot_money('n2s', raw_data)
+            return EastMoneyWorker.resolve_hot_money('n2s', raw_data)
         else:
             raise Exception('类型错误')
 
@@ -248,25 +248,25 @@ class EastMoneyService:
 
     @staticmethod
     def get_hu_gu_tong_hot_money():
-        return EastMoneyService.get_hot_money_page('1')
+        return EastMoneyWorker.get_hot_money_page('1')
 
     @staticmethod
     def get_shen_gu_tong_hot_money():
-        return EastMoneyService.get_hot_money_page('3')
+        return EastMoneyWorker.get_hot_money_page('3')
 
     @staticmethod
     def get_gang_gu_tong_hu_hot_money():
-        return EastMoneyService.get_hot_money_page('2')
+        return EastMoneyWorker.get_hot_money_page('2')
 
     @staticmethod
     def get_gang_gu_tong_shen_hot_money():
-        return EastMoneyService.get_hot_money_page('4')
+        return EastMoneyWorker.get_hot_money_page('4')
 
 
 
 if __name__ == '__main__':
-    # print(EastMoneyService.get_index_or_concept_one_minute_tick_data('1.000001', days=5))
-    # print(EastMoneyService.get_latest_hot_money_north())
-    # print(EastMoneyService.get_kline('1.000001'))
-    # print(EastMoneyService.get_kline('1.601658'))
-    print(EastMoneyService.get_hot_money_page(page_no=1))
+    # print(EastMoneyWorker.get_index_or_concept_one_minute_tick_data('1.000001', days=5))
+    # print(EastMoneyWorker.get_latest_hot_money_north())
+    # print(EastMoneyWorker.get_kline('1.000001'))
+    # print(EastMoneyWorker.get_kline('1.601658'))
+    print(EastMoneyWorker.get_hot_money_page(page_no=1))

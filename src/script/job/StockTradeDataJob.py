@@ -4,7 +4,7 @@
 from src.script.job.Job import Job
 from src.utils.sessions import FuturesSession
 from src.service.StockService import StockService
-from src.service.EastMoneyService import EastMoneyService
+from src.service.EastMoneyWorker import EastMoneyWorker
 from src.utils.lodash import lodash
 from src.utils.DataUtils import DataUtils
 import asyncio
@@ -30,18 +30,18 @@ class StockTradeDataJob:
         }
         if 'secid' in base:
             secid = base['secid']
-            model['list'] = EastMoneyService.get_kline(secid)
+            model['list'] = EastMoneyWorker.get_kline(secid)
             history_document.update({ "symbol": base['symbol']}, model, True)
         elif base['type'] == 'capital':
             # 手动生成kline
             document = client.stock['sync_capital']
             item_list = document.find({ "symbol": base['symbol'] }).sort([('date', -1)]).limit(200)
             if base['symbol'] == 'CAPITAL.NORTH':
-                hu_gu_tong_history = EastMoneyService.get_hu_gu_tong_hot_money()
-                shen_gu_tong_history = EastMoneyService.get_shen_gu_tong_hot_money()
+                hu_gu_tong_history = EastMoneyWorker.get_hu_gu_tong_hot_money()
+                shen_gu_tong_history = EastMoneyWorker.get_shen_gu_tong_hot_money()
             elif base['symbol'] == 'CAPITAL.SOUTH':
-                hu_gu_tong_history = EastMoneyService.get_gang_gu_tong_hu_hot_money()
-                shen_gu_tong_history = EastMoneyService.get_gang_gu_tong_shen_hot_money()
+                hu_gu_tong_history = EastMoneyWorker.get_gang_gu_tong_hu_hot_money()
+                shen_gu_tong_history = EastMoneyWorker.get_gang_gu_tong_shen_hot_money()
 
             result = []
             for item in item_list:
