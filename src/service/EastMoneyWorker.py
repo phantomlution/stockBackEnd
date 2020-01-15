@@ -195,14 +195,11 @@ class EastMoneyWorker:
             time = item[0]
             if len(time.split(':')[0]) == 1:
                 time = '0' + time
-            if item[1] == '-':
-                continue
+
             result.append({
                 "time": time,
-                "huAmount": int(float(item[1]) * 10000),
-                "huRemain": int(float(item[2]) * 10000),
-                "shenAmount": int(float(item[3]) * 10000),
-                "shenRemain": int(float(item[4]) * 10000)
+                "huAmount": None if item[1] == '-' else int(float(item[1]) * 10000),
+                "shenAmount": None if item[3] == '-' else int(float(item[3]) * 10000),
             })
         return {
             "date": actual_date,
@@ -269,4 +266,4 @@ if __name__ == '__main__':
     # print(EastMoneyWorker.get_latest_hot_money_north())
     # print(EastMoneyWorker.get_kline('1.000001'))
     # print(EastMoneyWorker.get_kline('1.601658'))
-    print(EastMoneyWorker.get_hot_money_page(page_no=1))
+    print(EastMoneyWorker.get_latest_hot_money_data('CAPITAL.NORTH'))
