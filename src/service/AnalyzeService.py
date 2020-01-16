@@ -19,6 +19,7 @@ stunt_document = client.stock.stunt
 concept_block_ranking_document = client.stock.concept_block_ranking
 surge_for_short_document = client.stock.surge_for_short
 analyze_stock_document = client.stock.analyze_stock
+heat_report_document = client.stock.heat_report
 
 
 def generate_analyze_file(file_name, content):
@@ -422,6 +423,10 @@ class AnalyzeService:
             result.append(model)
 
         return result
+
+    @staticmethod
+    def get_heat_report():
+        return list(heat_report_document.find({}, {'_id': 0 }))
 
 
 if __name__ == '__main__':

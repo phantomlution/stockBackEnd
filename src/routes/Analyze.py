@@ -92,3 +92,9 @@ def get_concept_block_trend():
 def insert_stock_list():
     stock_list = request.get_json()
     AnalyzeService.update_stock_list(stock_list)
+
+
+@analyze_api.route('/heat/report', methods=['GET'])
+@flask_response
+def get_heat_report():
+    return AnalyzeService.get_heat_report()
