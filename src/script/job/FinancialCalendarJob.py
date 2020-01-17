@@ -198,7 +198,8 @@ class FinancialCalendarJob:
             for item in item_list:
                 item['source'] = source
                 item['key'] = '_'.join([source, item['type'], item['date'], item['name']])
-                financial_calendar_document.update({ "key": item['key'] }, item, True)
+                if financial_calendar_document.find_one({ 'key': item['key']}) is None:
+                    financial_calendar_document.insert(item)
             self.job.success(task_id)
 
     def run(self, end_func=None):
