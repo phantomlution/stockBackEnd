@@ -27,7 +27,7 @@ class DataSyncJob:
 
     def sync_item(self, config):
         _type = config['type']
-        if _type in ['index', 'concept']:
+        if _type in ['index', 'concept', 'etf']:
             item_list = EastMoneyWorker.get_index_or_concept_one_minute_tick_data(config['symbol'], days=5)
             for item in item_list:
                 self.update_item(item, config)
@@ -55,6 +55,5 @@ if __name__ == '__main__':
     # response = EastMoneyWorker.get_latest_concept_block_data('BK0940')
     # print(response)
     DataSyncJob().run()
-
 
 

@@ -265,5 +265,5 @@ if __name__ == '__main__':
     # print(EastMoneyWorker.get_index_or_concept_one_minute_tick_data('1.000001', days=5))
     # print(EastMoneyWorker.get_latest_hot_money_north())
     # print(EastMoneyWorker.get_kline('1.000001'))
-    # print(EastMoneyWorker.get_kline('1.601658'))
-    print(EastMoneyWorker.get_latest_hot_money_data('CAPITAL.NORTH'))
+    print(EastMoneyWorker.get_kline('1.510050'))
+    # print(EastMoneyWorker.get_latest_hot_money_data('CAPITAL.NORTH'))

@@ -49,6 +49,8 @@ class DataService:
                 return '虚拟货币'
             elif val == 'exchange':
                 return '外汇'
+            elif val == 'etf':
+                return 'etf'
             else:
                 return '股票'
 

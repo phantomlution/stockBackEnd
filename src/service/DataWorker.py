@@ -446,7 +446,7 @@ class DataWorker(object):
 
     @staticmethod
     def get_sync_item_list():
-        sync_item_list = list(base_document.find({ "type": { '$in': ['index', 'concept', 'capital']}}))
+        sync_item_list = list(base_document.find({ "type": { '$in': ['index', 'concept', 'capital', 'etf']}}))
         for item in sync_item_list:
             item['document'] = 'sync_' + item['type']
 
