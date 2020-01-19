@@ -99,19 +99,21 @@ class FxWorker:
         return result
 
     @staticmethod
-    def get_quote(item):
-        item = str.upper(item)
+    def get_quote(code):
+        base = DatabaseService.get_base(code)
+        symbol = base['symbol']
+        exchange = base['exchange']
         url = 'https://api-q.fx678.com/getQuote.php'
 
         params = {
-            "exchName": 'WGJS',
-            "symbol": item,
+            "exchName": exchange,
+            "symbol": symbol,
         }
 
         result = FxWorker.get_response(url, params)
 
         if result['s'] != 'ok':
-            raise Exception('获取{}失败'.format(item))
+            raise Exception('获取{}失败'.format(symbol))
 
         return {
             "open": float(result['o'][0]),
@@ -159,6 +161,6 @@ class FxWorker:
 
 
 if __name__ == '__main__':
-    result = FxWorker.get_kline('BTCUSD')
-    # result = FxWorker.get_quote('xau')
+    # result = FxWorker.get_kline('BTCUSD')
+    result = FxWorker.get_quote('USDCNH')
     print(result)

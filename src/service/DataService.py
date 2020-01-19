@@ -13,7 +13,12 @@ class DataService:
 
     @staticmethod
     def get_quote(code):
-        return FxWorker.get_quote(code)
+        base = DatabaseService.get_base(code)
+        source = base['source']
+        if source == 'fx':
+            return FxWorker.get_quote(code)
+        else:
+            raise Exception('quote配置错误')
 
     @staticmethod
     def get_kline(code):
