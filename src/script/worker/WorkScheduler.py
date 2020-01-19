@@ -1,6 +1,5 @@
 from src.script.worker.DataMonitorWorker import DataMonitorWorker
 from src.script.worker.NewsScratchWorker import NewsScratchWorker
-from src.script.worker.ZhihuWorker import ZhihuWorker
 from functools import wraps
 from src.service.LogService import LogService
 import time
@@ -53,7 +52,7 @@ def low_priority_update():
 
 @schedule_monitor
 def user_update_track():
-    ZhihuWorker.track_all_users()
+    pass
 
 
 def run_continuously(interval=1):
