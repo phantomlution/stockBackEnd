@@ -18,7 +18,9 @@ class DatabaseBackUpJob:
             'stock_pool',
             'huitong',
             'chess',
-            'surge_for_short'
+            'surge_for_short',
+            'movie_series',
+            'movie_comment'
         ]
 
         task_list += self.get_other_table()
