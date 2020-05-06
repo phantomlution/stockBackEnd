@@ -109,7 +109,8 @@ class StockTradeDataJob:
 
 
 if __name__ == '__main__':
+    stock_code = 'CAPITAL.NORTH'
     # stock_code = 'CAPITAL.SOUTH'
-    # base = StockService.get_stock_base(stock_code)
-    # print(StockTradeDataJob().update_trade_data(base))
-    StockTradeDataJob().run()
+    base = StockService.get_stock_base(stock_code)
+    print(StockTradeDataJob().update_trade_data(base))
+    # StockTradeDataJob().run()

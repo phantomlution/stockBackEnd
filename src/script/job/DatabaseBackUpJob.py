@@ -5,6 +5,10 @@ from src.script.job.Job import Job
 from src.service.DataWorker import DataWorker
 import os
 
+db_name = 'stock'
+cache_dir = '/Users/yixiaoxiao/mongo_backup/'
+zip_file_uri = '/Users/yixiaoxiao/Documents/mongo_backup.zip'
+
 
 class DatabaseBackUpJob:
 
@@ -39,11 +43,6 @@ class DatabaseBackUpJob:
         return other_table
 
     def start(self):
-        db_name = 'stock'
-
-        cache_dir = '/Users/yixiaoxiao/mongo_backup/'
-        zip_file_uri = '/Users/yixiaoxiao/Documents/mongo_backup.zip'
-
         for idx, task in enumerate(self.job.task_list):
             try:
                 table_name = task['raw']
@@ -58,6 +57,16 @@ class DatabaseBackUpJob:
     def run(self, end_func=None):
         self.job.start(self.start, end_func)
 
+    # 数据恢复
+    def restore(self):
+        for idx, task in enumerate(self.job.task_list):
+            try:
+                table_name = task['raw']
+                os.system('mongoimport -h localhost -d ' + db_name + ' -c ' + table_name + '  --file ' + cache_dir + table_name + '.json')
+            except Exception as e:
+                print(e)
+
 
 if __name__ == '__main__':
     DatabaseBackUpJob().run()
+    # DatabaseBackUpJob().restore()
